@@ -3,13 +3,17 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Watchlist API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: items
+    description: Watchlist item operations
+  - name: stats
+    description: Watchlist statistics
 paths:
   /healthz:
     get:
@@ -24,6 +28,147 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /items:
+    get:
+      operationId: listItems
+      tags: [items]
+      summary: List all watchlist items
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [want_to_watch, watching, watched]
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [movie, series]
+        - name: genre
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of watchlist items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WatchlistItem"
+    post:
+      operationId: createItem
+      tags: [items]
+      summary: Add item to watchlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistItemInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistItem"
+
+  /items/{id}:
+    get:
+      operationId: getItem
+      tags: [items]
+      summary: Get a single watchlist item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Watchlist item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistItem"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateItem
+      tags: [items]
+      summary: Update a watchlist item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WatchlistItemUpdate"
+      responses:
+        "200":
+          description: Updated item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistItem"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteItem
+      tags: [items]
+      summary: Remove item from watchlist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /stats:
+    get:
+      operationId: getStats
+      tags: [stats]
+      summary: Get watchlist statistics
+      responses:
+        "200":
+          description: Watchlist stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WatchlistStats"
+
+  /items/recent:
+    get:
+      operationId: getRecentItems
+      tags: [items]
+      summary: Get recently added or updated items
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 6
+      responses:
+        "200":
+          description: Recent items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WatchlistItem"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +179,136 @@ components:
       required:
         - status
 
+    WatchlistItem:
+      type: object
+      required:
+        - id
+        - title
+        - type
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          enum: [movie, series]
+        genre:
+          type: ["string", "null"]
+        year:
+          type: ["integer", "null"]
+        posterUrl:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        status:
+          type: string
+          enum: [want_to_watch, watching, watched]
+        rating:
+          type: ["integer", "null"]
+          minimum: 1
+          maximum: 10
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    WatchlistItemInput:
+      type: object
+      required:
+        - title
+        - type
+      properties:
+        title:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [movie, series]
+        genre:
+          type: string
+        year:
+          type: integer
+        posterUrl:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [want_to_watch, watching, watched]
+          default: want_to_watch
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 10
+        notes:
+          type: string
+
+    WatchlistItemUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+        type:
+          type: string
+          enum: [movie, series]
+        genre:
+          type: string
+        year:
+          type: integer
+        posterUrl:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+          enum: [want_to_watch, watching, watched]
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 10
+        notes:
+          type: string
+
+    WatchlistStats:
+      type: object
+      required:
+        - total
+        - byStatus
+        - byType
+      properties:
+        total:
+          type: integer
+        byStatus:
+          type: object
+          required:
+            - want_to_watch
+            - watching
+            - watched
+          properties:
+            want_to_watch:
+              type: integer
+            watching:
+              type: integer
+            watched:
+              type: integer
+        byType:
+          type: object
+          required:
+            - movie
+            - series
+          properties:
+            movie:
+              type: integer
+            series:
+              type: integer
+        averageRating:
+          type: ["number", "null"]
