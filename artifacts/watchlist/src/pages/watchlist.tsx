@@ -30,14 +30,14 @@ export function WatchlistPage() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       <header className="space-y-4">
-        <h1 className="text-4xl md:text-5xl font-serif text-foreground">Collection</h1>
-        <p className="text-muted-foreground text-lg">Browse and manage your cinematic journal.</p>
+        <h1 className="font-serif text-3xl text-foreground sm:text-4xl md:text-5xl">Collection</h1>
+        <p className="text-base text-muted-foreground sm:text-lg">Browse and manage your cinematic journal.</p>
       </header>
 
-      <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between p-4 rounded-lg bg-card/30 border border-border/50">
-        <div className="relative w-full md:w-96 shrink-0">
+      <div className="flex flex-col gap-4 rounded-lg border border-border/50 bg-card/30 p-3 sm:p-4 md:flex-row md:items-center md:justify-between">
+        <div className="relative w-full shrink-0 md:w-80 lg:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder="Search titles..." 
@@ -47,14 +47,14 @@ export function WatchlistPage() {
           />
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto items-start sm:items-center">
-          <div className="flex items-center gap-2">
+        <div className="flex w-full flex-col items-stretch gap-3 md:w-auto md:flex-row md:items-center md:gap-4">
+          <div className="flex min-w-0 items-center gap-2">
             <SlidersHorizontal className="w-4 h-4 text-muted-foreground shrink-0" />
             <ToggleGroup 
               type="single" 
               value={statusFilter} 
               onValueChange={(v) => v && setStatusFilter(v as ListItemsStatus | "all")}
-              className="justify-start shrink-0 overflow-x-auto max-w-[calc(100vw-3rem)] sm:max-w-none pb-2 sm:pb-0"
+              className="min-w-0 flex-1 justify-start overflow-x-auto pb-1"
             >
               <ToggleGroupItem value="all" className="rounded-full text-xs">All</ToggleGroupItem>
               <ToggleGroupItem value="want_to_watch" className="rounded-full text-xs whitespace-nowrap">Want to Watch</ToggleGroupItem>
@@ -63,13 +63,13 @@ export function WatchlistPage() {
             </ToggleGroup>
           </div>
 
-          <div className="h-6 w-px bg-border hidden sm:block" />
+          <div className="hidden h-6 w-px bg-border md:block" />
 
           <ToggleGroup 
             type="single" 
             value={typeFilter} 
             onValueChange={(v) => v && setTypeFilter(v as ListItemsType | "all")}
-            className="shrink-0"
+            className="shrink-0 self-start md:self-auto"
           >
             <ToggleGroupItem value="all" className="rounded-full text-xs">All</ToggleGroupItem>
             <ToggleGroupItem value="movie" className="rounded-full text-xs">Movies</ToggleGroupItem>
@@ -80,7 +80,7 @@ export function WatchlistPage() {
 
       <div className="min-h-[50vh]">
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+           <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="space-y-3">
                 <Skeleton className="aspect-[2/3] w-full rounded-md" />
@@ -100,7 +100,7 @@ export function WatchlistPage() {
         ) : (
           <motion.div 
             layout
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+             className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
           >
             <AnimatePresence>
               {filteredItems?.map((item) => (

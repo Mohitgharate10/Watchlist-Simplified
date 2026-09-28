@@ -132,19 +132,19 @@ export function ItemDetail() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 max-w-6xl mx-auto">
+    <div className="mx-auto max-w-6xl space-y-6 animate-in fade-in duration-500 sm:space-y-8">
       <Button 
         variant="ghost" 
         onClick={() => setLocation("/watchlist")}
-        className="gap-2 text-muted-foreground hover:text-foreground pl-0"
+        className="gap-2 pl-0 text-sm text-muted-foreground hover:text-foreground sm:text-base"
       >
         <ArrowLeft className="w-4 h-4" /> Back to Watchlist
       </Button>
 
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-12">
         {/* Left Column: Poster & Actions */}
-        <div className="w-full lg:w-[350px] shrink-0 space-y-6">
-          <div className="aspect-[2/3] rounded-lg overflow-hidden bg-muted border border-border/50 shadow-2xl relative">
+        <div className="w-full shrink-0 space-y-6 lg:w-[350px]">
+          <div className="mx-auto aspect-[2/3] w-full max-w-[280px] overflow-hidden rounded-lg border border-border/50 bg-muted shadow-2xl relative sm:max-w-[350px] lg:mx-0 lg:max-w-none">
             {item.posterUrl ? (
               <img 
                 src={item.posterUrl} 
@@ -160,7 +160,7 @@ export function ItemDetail() {
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2">
             <div className="space-y-2">
               <label className="text-sm text-muted-foreground font-medium">Status</label>
               <Select value={item.status} onValueChange={handleStatusChange}>
@@ -197,10 +197,10 @@ export function ItemDetail() {
         </div>
 
         {/* Right Column: Info & Notes */}
-        <div className="flex-1 space-y-8">
+         <div className="min-w-0 flex-1 space-y-6 sm:space-y-8">
           <div>
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif leading-tight text-foreground">
+             <div className="mb-4 flex items-start justify-between gap-3 sm:gap-4">
+               <h1 className="min-w-0 flex-1 font-serif text-3xl leading-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
                 {item.title}
               </h1>
               
@@ -270,7 +270,7 @@ export function ItemDetail() {
                   <Edit2 className="w-5 h-5 text-muted-foreground" /> 
                   Synopsis
                 </h3>
-                <p className="text-muted-foreground leading-relaxed text-lg bg-card/20 p-6 rounded-lg border border-border/40">
+                <p className="rounded-lg border border-border/40 bg-card/20 p-4 text-base leading-relaxed text-muted-foreground sm:p-6 sm:text-lg">
                   {item.description}
                 </p>
               </section>
@@ -288,7 +288,7 @@ export function ItemDetail() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Write your thoughts, reviews, or favorite quotes..."
-                className="min-h-[250px] resize-y bg-card/30 border-border/50 text-base leading-relaxed p-6 placeholder:text-muted-foreground/30 focus-visible:ring-primary/20"
+                 className="min-h-[220px] resize-y bg-card/30 border-border/50 p-4 text-base leading-relaxed placeholder:text-muted-foreground/30 focus-visible:ring-primary/20 sm:min-h-[250px] sm:p-6"
               />
             </section>
 

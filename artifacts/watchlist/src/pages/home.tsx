@@ -15,13 +15,13 @@ export function Home() {
   );
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-8 sm:space-y-10">
       <header className="space-y-2">
-        <h1 className="text-4xl md:text-5xl font-serif text-foreground">Overview</h1>
-        <p className="text-muted-foreground text-lg">Your cinematic journey at a glance.</p>
+        <h1 className="font-serif text-3xl text-foreground sm:text-4xl md:text-5xl">Overview</h1>
+        <p className="text-base text-muted-foreground sm:text-lg">Your cinematic journey at a glance.</p>
       </header>
 
-      <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <section className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:gap-4 md:grid-cols-4">
         <StatCard 
           title="Total Titles" 
           value={isStatsLoading ? null : stats?.total} 
@@ -49,12 +49,12 @@ export function Home() {
         />
       </section>
 
-      <section className="grid md:grid-cols-2 gap-4">
+      <section className="grid gap-3 sm:gap-4 md:grid-cols-2">
          <Card className="bg-card/50 border-border/50">
             <CardHeader>
               <CardTitle className="text-lg font-serif text-muted-foreground font-normal">By Format</CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center gap-8">
+             <CardContent className="flex flex-wrap items-center gap-4 sm:gap-8">
               {isStatsLoading ? (
                 <Skeleton className="w-full h-12" />
               ) : (
@@ -107,7 +107,7 @@ export function Home() {
         </div>
 
         {isRecentLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+           <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <Skeleton key={i} className="aspect-[2/3] w-full rounded-md" />
             ))}
@@ -119,7 +119,7 @@ export function Home() {
             <p className="text-muted-foreground">Start adding films and series to your watchlist.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+           <div className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-6">
             {recentItems?.map((item, index) => (
               <motion.div
                 key={item.id}

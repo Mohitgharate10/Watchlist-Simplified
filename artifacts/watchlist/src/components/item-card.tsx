@@ -42,7 +42,7 @@ export function ItemCard({ item, compact = false }: ItemCardProps) {
   return (
     <Link href={`/item/${item.id}`} className="block group">
       <Card className="h-full overflow-hidden bg-card/30 border-border/40 hover:border-primary/50 transition-colors duration-300 relative">
-        <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute right-2 top-2 z-10 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
               <Button variant="secondary" size="icon" className="w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border">
@@ -87,19 +87,19 @@ export function ItemCard({ item, compact = false }: ItemCardProps) {
         </div>
 
         <CardContent className={`p-4 ${compact ? 'hidden' : ''}`}>
-          <div className="flex justify-between items-start gap-2 mb-2">
-            <h3 className="font-serif text-lg leading-tight line-clamp-2 text-foreground group-hover:text-primary transition-colors">
+          <div className="mb-2 flex min-w-0 items-start justify-between gap-2">
+            <h3 className="min-w-0 flex-1 font-serif text-base leading-tight line-clamp-2 text-foreground transition-colors group-hover:text-primary sm:text-lg">
               {item.title}
             </h3>
             {item.rating && (
-              <div className="flex items-center gap-1 shrink-0 bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-medium">
+                <div className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary sm:px-2 sm:text-xs">
                 <Star className="w-3 h-3 fill-current" />
                 {item.rating}
               </div>
             )}
           </div>
           
-          <div className="flex items-center text-sm text-muted-foreground gap-2">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <span className="capitalize">{item.type}</span>
             {(item.year || item.genre) && <span className="w-1 h-1 rounded-full bg-border" />}
             {item.year && <span>{item.year}</span>}

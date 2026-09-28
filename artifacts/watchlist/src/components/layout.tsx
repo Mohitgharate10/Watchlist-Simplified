@@ -13,24 +13,24 @@ export function Layout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground flex-col md:flex-row">
-      <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-border bg-card/50 backdrop-blur flex flex-col z-10 sticky top-0 md:h-screen">
-        <div className="p-6 flex items-center gap-3">
+    <div className="flex min-h-screen flex-col bg-background text-foreground md:flex-row">
+      <aside className="sticky top-0 z-10 flex w-full flex-col border-b border-border bg-card/50 backdrop-blur md:h-screen md:min-h-screen md:w-64 md:border-b-0 md:border-r">
+        <div className="flex items-center gap-3 px-4 py-4 sm:p-6">
           <div className="w-8 h-8 rounded bg-primary text-primary-foreground flex items-center justify-center shadow-lg shadow-primary/20">
             <Film className="w-5 h-5" />
           </div>
-          <h1 className="font-serif text-2xl tracking-wide text-foreground">Watchlist</h1>
+          <h1 className="font-serif text-xl tracking-wide text-foreground sm:text-2xl">Watchlist</h1>
         </div>
 
-        <nav className="flex-1 px-4 pb-4 md:pb-0 overflow-x-auto md:overflow-visible flex md:flex-col gap-2">
+        <nav className="flex flex-1 gap-2 overflow-x-auto px-3 pb-3 sm:px-4 md:flex-col md:overflow-visible md:pb-0">
           {navItems.map((item) => {
             const isActive = location === item.href;
             const Icon = item.icon;
             return (
-              <Link key={item.href} href={item.href} className="flex-shrink-0">
+              <Link key={item.href} href={item.href} className="flex min-w-0 flex-1 md:flex-none">
                 <Button
                   variant={isActive ? "secondary" : "ghost"}
-                  className={`w-full justify-start gap-3 text-base font-medium h-12 ${
+                  className={`h-10 w-full justify-start gap-2 px-3 text-sm font-medium sm:gap-3 sm:text-base md:h-12 md:px-4 ${
                     isActive ? "bg-secondary text-primary" : "text-muted-foreground hover:text-foreground"
                   }`}
                   data-testid={`nav-${item.label.toLowerCase()}`}
@@ -53,12 +53,12 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 lg:p-12 pb-24 md:pb-12">
+      <main className="min-w-0 mx-auto w-full max-w-7xl flex-1 p-4 pb-24 sm:p-6 md:p-8 md:pb-12 lg:p-12">
         {children}
       </main>
 
       {/* Mobile fab */}
-      <div className="fixed bottom-6 right-6 md:hidden z-50">
+      <div className="fixed bottom-6 right-24 z-50 md:hidden">
         <AddItemDialog>
           <Button size="icon" className="w-14 h-14 rounded-full shadow-primary/30 shadow-xl" data-testid="button-mobile-add">
             <Plus className="w-6 h-6" />

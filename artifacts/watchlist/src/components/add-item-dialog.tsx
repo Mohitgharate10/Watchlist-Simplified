@@ -135,7 +135,7 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] border-border bg-card/95 backdrop-blur-xl">
+       <DialogContent className="max-h-[92dvh] overflow-y-auto border-border bg-card/95 p-4 backdrop-blur-xl sm:max-w-[500px] sm:p-6">
         <DialogHeader>
           <DialogTitle className="font-serif text-2xl text-foreground">Add to Watchlist</DialogTitle>
           <DialogDescription className="text-muted-foreground">
@@ -218,7 +218,7 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="type"
@@ -265,7 +265,7 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="year"
@@ -330,7 +330,7 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
             <div className="flex justify-end pt-4">
               <Button 
                 type="submit" 
-                className="w-full sm:w-auto min-w-[120px]" 
+                className="min-w-[120px] w-full sm:w-auto" 
                 disabled={createItem.isPending}
                 data-testid="button-submit-item"
               >
