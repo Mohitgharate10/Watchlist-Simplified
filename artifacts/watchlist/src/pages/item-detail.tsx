@@ -82,7 +82,7 @@ export function ItemDetail() {
         { id, data: { notes: debouncedNotes } },
         {
           onSuccess: (data) => {
-            lastSavedNotes.current = data.notes;
+            lastSavedNotes.current = data.notes ?? null;
             queryClient.setQueryData(getGetItemQueryKey(id), data);
           }
         }

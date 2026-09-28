@@ -14,6 +14,8 @@ tags:
     description: Watchlist item operations
   - name: stats
     description: Watchlist statistics
+  - name: tmdb
+    description: TMDB title search
 paths:
   /healthz:
     get:
@@ -169,6 +171,39 @@ paths:
                 items:
                   $ref: "#/components/schemas/WatchlistItem"
 
+  /tmdb/search:
+    get:
+      operationId: searchTmdb
+      tags: [tmdb]
+      summary: Search TMDB for movies and series
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [movie, series]
+      responses:
+        "200":
+          description: Matching TMDB titles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TmdbSearchResult"
+        "400":
+          description: Invalid search query
+        "503":
+          description: TMDB integration is not configured
+        "502":
+          description: TMDB request failed
+
 components:
   schemas:
     HealthStatus:
@@ -312,3 +347,30 @@ components:
               type: integer
         averageRating:
           type: ["number", "null"]
+
+    TmdbSearchResult:
+      type: object
+      required:
+        - id
+        - title
+        - type
+        - year
+        - posterUrl
+        - description
+        - genre
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        type:
+          type: string
+          enum: [movie, series]
+        year:
+          type: ["integer", "null"]
+        posterUrl:
+          type: ["string", "null"]
+        description:
+          type: ["string", "null"]
+        genre:
+          type: ["string", "null"]

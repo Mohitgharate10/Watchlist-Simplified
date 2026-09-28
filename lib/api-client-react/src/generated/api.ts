@@ -23,6 +23,8 @@ import type {
   GetRecentItemsParams,
   HealthStatus,
   ListItemsParams,
+  SearchTmdbParams,
+  TmdbSearchResult,
   WatchlistItem,
   WatchlistItemInput,
   WatchlistItemUpdate,
@@ -642,6 +644,90 @@ export function useGetRecentItems<TData = Awaited<ReturnType<typeof getRecentIte
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetRecentItemsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSearchTmdbUrl = (params: SearchTmdbParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/tmdb/search?${stringifiedParams}` : `/api/tmdb/search`
+}
+
+/**
+ * @summary Search TMDB for movies and series
+ */
+export const searchTmdb = async (params: SearchTmdbParams, options?: RequestInit): Promise<TmdbSearchResult[]> => {
+
+  return customFetch<TmdbSearchResult[]>(getSearchTmdbUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getSearchTmdbQueryKey = (params?: SearchTmdbParams,) => {
+    return [
+    `/api/tmdb/search`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getSearchTmdbQueryOptions = <TData = Awaited<ReturnType<typeof searchTmdb>>, TError = ErrorType<void>>(params: SearchTmdbParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof searchTmdb>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getSearchTmdbQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchTmdb>>> = ({ signal }) => searchTmdb(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof searchTmdb>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type SearchTmdbQueryResult = NonNullable<Awaited<ReturnType<typeof searchTmdb>>>
+export type SearchTmdbQueryError = ErrorType<void>
+
+
+/**
+ * @summary Search TMDB for movies and series
+ */
+
+export function useSearchTmdb<TData = Awaited<ReturnType<typeof searchTmdb>>, TError = ErrorType<void>>(
+ params: SearchTmdbParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof searchTmdb>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getSearchTmdbQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

@@ -138,6 +138,28 @@ export interface WatchlistStats {
   averageRating?: number | null;
 }
 
+export type TmdbSearchResultType = typeof TmdbSearchResultType[keyof typeof TmdbSearchResultType];
+
+
+export const TmdbSearchResultType = {
+  movie: 'movie',
+  series: 'series',
+} as const;
+
+export interface TmdbSearchResult {
+  id: number;
+  title: string;
+  type: TmdbSearchResultType;
+  /** @nullable */
+  year: number | null;
+  /** @nullable */
+  posterUrl: string | null;
+  /** @nullable */
+  description: string | null;
+  /** @nullable */
+  genre: string | null;
+}
+
 export type ListItemsParams = {
 status?: ListItemsStatus;
 type?: ListItemsType;
@@ -164,4 +186,20 @@ export const ListItemsType = {
 export type GetRecentItemsParams = {
 limit?: number;
 };
+
+export type SearchTmdbParams = {
+/**
+ * @minLength 2
+ */
+q: string;
+type?: SearchTmdbType;
+};
+
+export type SearchTmdbType = typeof SearchTmdbType[keyof typeof SearchTmdbType];
+
+
+export const SearchTmdbType = {
+  movie: 'movie',
+  series: 'series',
+} as const;
 

@@ -3,7 +3,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCreateItem, getListItemsQueryKey, getGetRecentItemsQueryKey, getGetStatsQueryKey } from "@workspace/api-client-react";
+import {
+  useCreateItem,
+  useSearchTmdb,
+  getListItemsQueryKey,
+  getGetRecentItemsQueryKey,
+  getGetStatsQueryKey,
+  getSearchTmdbQueryKey,
+  type TmdbSearchResult,
+} from "@workspace/api-client-react";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +39,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2 } from "lucide-react";
+import { Film, Loader2, Search, Tv } from "lucide-react";
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -47,6 +55,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export function AddItemDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [tmdbQuery, setTmdbQuery] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -64,6 +73,27 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
   });
 
   const createItem = useCreateItem();
+  const { data: tmdbResults, isLoading: isSearching, isError: isSearchError } = useSearchTmdb(
+    { q: tmdbQuery.trim() },
+    {
+      query: {
+        enabled: open && tmdbQuery.trim().length >= 2,
+        queryKey: getSearchTmdbQueryKey({ q: tmdbQuery.trim() }),
+      },
+    },
+  );
+
+  function selectTmdbResult(result: TmdbSearchResult) {
+    form.reset({
+      title: result.title,
+      type: result.type,
+      status: "want_to_watch",
+      posterUrl: result.posterUrl ?? "",
+      year: result.year ?? "",
+      genre: result.genre ?? "",
+      description: result.description ?? "",
+    });
+  }
 
   function onSubmit(values: FormValues) {
     createItem.mutate(
@@ -88,6 +118,7 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
           queryClient.invalidateQueries({ queryKey: getGetRecentItemsQueryKey({ limit: 6 }) });
           queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() });
           setOpen(false);
+          setTmdbQuery("");
           form.reset();
         },
         onError: () => {
@@ -111,6 +142,66 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
             Log a new film or series to track your cinematic journey.
           </DialogDescription>
         </DialogHeader>
+         <div className="space-y-2 rounded-lg border border-primary/20 bg-primary/5 p-3">
+           <div className="flex items-center gap-2 text-sm font-medium text-primary">
+             <Search className="h-4 w-4" />
+             Find it on TMDB
+           </div>
+           <Input
+             value={tmdbQuery}
+             onChange={(event) => setTmdbQuery(event.target.value)}
+             placeholder="Search movies and series..."
+             className="bg-background"
+             data-testid="input-tmdb-search"
+           />
+           {tmdbQuery.trim().length === 1 && (
+             <p className="text-xs text-muted-foreground">Type at least 2 characters to search.</p>
+           )}
+           {isSearching && (
+             <div className="flex items-center gap-2 py-2 text-xs text-muted-foreground">
+               <Loader2 className="h-3.5 w-3.5 animate-spin" />
+               Searching TMDB...
+             </div>
+           )}
+           {isSearchError && (
+             <p className="py-2 text-xs text-destructive">
+               TMDB search is unavailable right now. You can still enter a title manually.
+             </p>
+           )}
+           {!!tmdbResults?.length && (
+             <div className="max-h-60 space-y-1 overflow-y-auto pr-1">
+               {tmdbResults.map((result) => (
+                 <button
+                   type="button"
+                   key={`${result.type}-${result.id}`}
+                   onClick={() => selectTmdbResult(result)}
+                   className="flex w-full items-center gap-3 rounded-md p-2 text-left transition-colors hover:bg-primary/10"
+                   data-testid={`tmdb-result-${result.id}`}
+                 >
+                   <div className="h-14 w-10 shrink-0 overflow-hidden rounded bg-secondary">
+                     {result.posterUrl ? (
+                       <img src={result.posterUrl} alt="" className="h-full w-full object-cover" />
+                     ) : (
+                       <div className="flex h-full items-center justify-center text-muted-foreground">
+                         {result.type === "movie" ? <Film className="h-4 w-4" /> : <Tv className="h-4 w-4" />}
+                       </div>
+                     )}
+                   </div>
+                   <div className="min-w-0 flex-1">
+                     <p className="truncate text-sm font-medium text-foreground">{result.title}</p>
+                     <p className="text-xs capitalize text-muted-foreground">
+                       {result.type} {result.year ? `• ${result.year}` : ""}
+                     </p>
+                   </div>
+                   <span className="shrink-0 text-xs font-medium text-primary">Use</span>
+                 </button>
+               ))}
+             </div>
+           )}
+           {tmdbQuery.trim().length >= 2 && !isSearching && !isSearchError && tmdbResults?.length === 0 && (
+             <p className="py-2 text-xs text-muted-foreground">No TMDB matches found.</p>
+           )}
+         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField

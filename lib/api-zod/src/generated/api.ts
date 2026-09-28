@@ -196,3 +196,27 @@ export const GetRecentItemsResponseItem = zod.object({
 export const GetRecentItemsResponse = zod.array(GetRecentItemsResponseItem)
 
 
+/**
+ * @summary Search TMDB for movies and series
+ */
+export const searchTmdbQueryQMin = 2;
+
+
+
+export const SearchTmdbQueryParams = zod.object({
+  "q": zod.coerce.string().min(searchTmdbQueryQMin),
+  "type": zod.enum(['movie', 'series']).optional()
+})
+
+export const SearchTmdbResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "type": zod.enum(['movie', 'series']),
+  "year": zod.number().nullable(),
+  "posterUrl": zod.string().nullable(),
+  "description": zod.string().nullable(),
+  "genre": zod.string().nullable()
+})
+export const SearchTmdbResponse = zod.array(SearchTmdbResponseItem)
+
+
