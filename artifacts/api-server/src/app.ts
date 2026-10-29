@@ -43,7 +43,11 @@ const staticPath = staticCandidates.find((dir) => fs.existsSync(dir));
 
 if (staticPath) {
   app.use(express.static(staticPath));
-  app.get("*", (req, res, next) => {
+  // Express 5 compatible SPA fallback (app.use does not parse path-to-regexp)
+  app.use((req, res, next) => {
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      return next();
+    }
     if (req.path.startsWith("/api")) {
       return next();
     }
