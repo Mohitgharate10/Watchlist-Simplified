@@ -10,7 +10,13 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const isProduction = process.env.NODE_ENV === "production";
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: isProduction && !process.env.DATABASE_URL.includes("localhost")
+    ? { rejectUnauthorized: false }
+    : undefined,
+});
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";
