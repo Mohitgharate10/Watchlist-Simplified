@@ -1,6 +1,8 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
+import path from "node:path";
+import fs from "node:fs";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -30,5 +32,23 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api", router);
+
+// Serve frontend static files in production
+const staticCandidates = [
+  path.resolve(__dirname, "../../watchlist/dist/public"),
+  path.resolve(process.cwd(), "artifacts/watchlist/dist/public"),
+  path.resolve(__dirname, "../public"),
+];
+const staticPath = staticCandidates.find((dir) => fs.existsSync(dir));
+
+if (staticPath) {
+  app.use(express.static(staticPath));
+  app.get("*", (req, res, next) => {
+    if (req.path.startsWith("/api")) {
+      return next();
+    }
+    res.sendFile(path.resolve(staticPath, "index.html"));
+  });
+}
 
 export default app;
