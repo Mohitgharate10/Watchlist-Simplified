@@ -1,10 +1,10 @@
 # Contributing to Watchlist Simplified
 
-Thank you for your interest in improving **Watchlist Simplified**! Whether you want to add support for new streaming metadata, design UI enhancements, or optimize API performance, your help is welcome.
+Thank you for your interest in improving **Watchlist Simplified**. Whether you want to add support for new streaming metadata, design UI enhancements, or optimize API performance, your help is welcome.
 
 ---
 
-## 📌 Table of Contents
+## Table of Contents
 
 - [Code of Conduct](#code-of-conduct)
 - [How Can I Contribute?](#how-can-i-contribute)
@@ -16,21 +16,21 @@ Thank you for your interest in improving **Watchlist Simplified**! Whether you w
 
 ---
 
-## 🤝 Code of Conduct
+## Code of Conduct
 
 Please maintain an inclusive, collaborative, and friendly space for all contributors. Respect differing viewpoints and offer constructive feedback.
 
 ---
 
-## 💡 How Can I Contribute?
+## How Can I Contribute?
 
 1. **Bug Reports**: Open an issue detailing the steps to reproduce, the expected behavior, and error messages.
-2. **Feature Proposals**: Submit an issue outlining the idea (e.g., custom watchlist categories, export to CSV, user accounts).
+2. **Feature Proposals**: Submit an issue outlining the idea (for example: custom watchlist categories, export to CSV, user accounts).
 3. **Pull Requests**: Tackle any open issue or propose an enhancement directly.
 
 ---
 
-## 🏗️ Monorepo Workspace Structure
+## Monorepo Workspace Structure
 
 Watchlist Simplified is powered by `pnpm` workspaces:
 
@@ -43,7 +43,7 @@ Watchlist Simplified is powered by `pnpm` workspaces:
 
 ---
 
-## 🛠️ Local Development Setup
+## Local Development Setup
 
 1. **Fork & Clone**
    ```bash
@@ -91,7 +91,7 @@ Watchlist Simplified is powered by `pnpm` workspaces:
 
 ---
 
-## 🗄️ Database Changes with Drizzle
+## Database Changes with Drizzle
 
 When updating or introducing new database fields:
 1. Modify schema definitions in `lib/db/src/schema/watchlist.ts`.
@@ -107,7 +107,7 @@ When updating or introducing new database fields:
 
 ---
 
-## 📐 Coding Guidelines
+## Coding Guidelines
 
 - **TypeScript**: Strict type checking is enabled. Always declare proper types and avoid `any`.
 - **UI & Styling**: Use Tailwind CSS and Radix UI primitives. Maintain dark mode contrast ratios and accessibility.
@@ -115,7 +115,7 @@ When updating or introducing new database fields:
 
 ---
 
-## 🚀 Pull Request Process
+## Pull Request Process
 
 1. Test your changes locally (`pnpm run typecheck` and `pnpm run build`).
 2. Commit your code using clear, descriptive commit messages:
@@ -131,4 +131,4 @@ When updating or introducing new database fields:
 
 ---
 
-Happy watching and coding! 🍿
+Happy watching and coding.

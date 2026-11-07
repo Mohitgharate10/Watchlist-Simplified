@@ -1,4 +1,4 @@
-# 🎬 Watchlist Simplified
+# Watchlist Simplified
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -13,57 +13,49 @@
 
 > **A personal film and television series tracking application with instant TMDB metadata lookup, custom ratings, watch progress analytics, and a dark-mode dashboard.**
 
-[🌐 Live Application](https://watchlist-simplified.onrender.com/) • [✨ Features](#-features) • [🚀 Local Development](#-local-development) • [📦 Monorepo Architecture](#-monorepo-architecture) • [🤝 Contributing](CONTRIBUTING.md)
+[Live Application](https://watchlist-simplified.onrender.com/) • [Features](#features) • [Local Development](#local-development-setup) • [Monorepo Architecture](#monorepo-architecture) • [Contributing](CONTRIBUTING.md)
 
 ---
 
-## 📌 Table of Contents
+## Table of Contents
 
-- [Overview](#-overview)
-- [Key Features](#-key-features)
-- [Preview & Screenshots](#-preview--screenshots)
-- [Monorepo Architecture](#-monorepo-architecture)
-- [Tech Stack](#-tech-stack)
-- [Prerequisites](#-prerequisites)
-- [Local Development Setup](#-local-development-setup)
-- [Environment Variables](#-environment-variables)
-- [Database Management](#-database-management)
-- [API Reference](#-api-reference)
-- [Available Scripts](#-available-scripts)
-- [Contributing](#-contributing)
-- [License](#-license)
+- [Overview](#overview)
+- [Key Features](#features)
+- [Monorepo Architecture](#monorepo-architecture)
+- [Directory Structure](#directory-structure)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Local Development Setup](#local-development-setup)
+- [Environment Variables](#environment-variables)
+- [Database Management](#database-management)
+- [API Reference](#api-reference)
+- [Available Scripts](#available-scripts)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 🌟 Overview
+## Overview
 
-Keeping track of movies and TV shows across streaming platforms can quickly become disorganized. **Watchlist Simplified** offers a sleek, unified catalog where cinema enthusiasts can curate their watch history, queue upcoming releases, and log personal ratings.
+Keeping track of movies and TV shows across streaming platforms can quickly become disorganized. **Watchlist Simplified** offers a unified catalog where cinema enthusiasts can curate their watch history, queue upcoming releases, and log personal ratings.
 
 With native **The Movie Database (TMDB)** integration, users can search any title to automatically populate high-resolution movie posters, synopses, genres, and release years with zero manual data entry.
 
 ---
 
-## ✨ Features
+## Features
 
-- 🔍 **Real-Time TMDB Search**: Instantly query hundreds of thousands of films and TV series directly from the TMDB API.
-- 🖼️ **Automated Metadata Extraction**: Automatically imports official movie posters, genres, overview descriptions, and release years.
-- 🎯 **Lifecycle Status Tracking**: Categorize titles into **Want to Watch**, **Watching**, and **Watched**.
-- ⭐ **Personal Ratings & Notes**: Assign custom 1–10 star ratings and record private review notes for each entry.
-- 📊 **Dashboard & Metrics**: Visual breakdown of total entries, completed titles, watch progress, and favorite genres.
-- 🌓 **Modern Dark Aesthetic**: Responsive interface built with Radix UI, Tailwind CSS, Lucide Icons, and accessible controls.
-- 🔒 **Type-Safe Full-Stack**: End-to-end type safety spanning PostgreSQL schema, Drizzle ORM, Zod validation, and React components.
-
----
-
-## 📸 Preview & Screenshots
-
-<p align="center">
-  <img src="screenshots/watchlist-tmdb-final.jpg" alt="Watchlist Simplified Dashboard" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
-</p>
+- **Real-Time TMDB Search**: Instantly query hundreds of thousands of films and TV series directly from the TMDB API.
+- **Automated Metadata Extraction**: Automatically imports official movie posters, genres, overview descriptions, and release years.
+- **Lifecycle Status Tracking**: Categorize titles into **Want to Watch**, **Watching**, and **Watched**.
+- **Personal Ratings and Notes**: Assign custom 1–10 star ratings and record private review notes for each entry.
+- **Dashboard and Metrics**: Visual breakdown of total entries, completed titles, watch progress, and favorite genres.
+- **Modern Dark Aesthetic**: Responsive interface built with Radix UI, Tailwind CSS, Lucide Icons, and accessible controls.
+- **Type-Safe Full-Stack**: End-to-end type safety spanning PostgreSQL schema, Drizzle ORM, Zod validation, and React components.
 
 ---
 
-## 🏗️ Monorepo Architecture
+## Monorepo Architecture
 
 ```mermaid
 flowchart TD
@@ -109,7 +101,7 @@ flowchart TD
 
 ---
 
-## 📦 Directory Structure
+## Directory Structure
 
 ```text
 Watchlist-Simplified/
@@ -138,7 +130,7 @@ Watchlist-Simplified/
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Framework**: [React 19](https://react.dev/)
@@ -160,17 +152,17 @@ Watchlist-Simplified/
 
 ---
 
-## ⚙️ Prerequisites
+## Prerequisites
 
 Before you begin, ensure you have:
 - [Node.js](https://nodejs.org/) `>= 20.0.0`
 - [pnpm](https://pnpm.io/) `>= 9.0.0`
-- A [PostgreSQL](https://www.postgresql.org/) database (local or hosted, e.g., Supabase / Neon / Render Postgres)
+- A [PostgreSQL](https://www.postgresql.org/) database (local or hosted)
 - A free [TMDB API Key](https://www.themoviedb.org/settings/api)
 
 ---
 
-## 🚀 Local Development Setup
+## Local Development Setup
 
 ### 1. Clone the repository
 ```bash
@@ -212,7 +204,7 @@ Visit [http://localhost:5000](http://localhost:5000) in your browser.
 
 ---
 
-## 🗄️ Database Management
+## Database Management
 
 Database schemas are defined in `lib/db/src/schema/watchlist.ts`.
 
@@ -227,7 +219,7 @@ pnpm --filter @workspace/db run generate
 pnpm run typecheck:libs
 ```
 
-### Schema Overview: `watchlist_items`
+### Schema Overview: watchlist_items
 | Column | Type | Constraints | Description |
 | :--- | :--- | :--- | :--- |
 | `id` | `serial` | Primary Key | Auto-incrementing identifier |
@@ -245,7 +237,7 @@ pnpm run typecheck:libs
 
 ---
 
-## 🔌 API Reference
+## API Reference
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -260,7 +252,7 @@ pnpm run typecheck:libs
 
 ---
 
-## 🛠️ Available Scripts
+## Available Scripts
 
 | Command | Action |
 | :--- | :--- |
@@ -273,19 +265,18 @@ pnpm run typecheck:libs
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-Contributions, feature ideas, and pull requests are warmly appreciated!  
-Please see our [Contributing Guide](CONTRIBUTING.md) for details on setting up your local environment and submitting changes.
+Contributions, feature ideas, and pull requests are welcome. Please see our [Contributing Guide](CONTRIBUTING.md) for details on setting up your local environment and submitting changes.
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for more information.
 
 ---
 
 <p align="center">
-  Built with ❤️ by <a href="https://github.com/Mohitgharate10">Mohit Gharate</a>
+  Maintained by <a href="https://github.com/Mohitgharate10">Mohit Gharate</a>
 </p>
