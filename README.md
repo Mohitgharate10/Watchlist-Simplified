@@ -1,16 +1,5 @@
 # Watchlist Simplified
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)](https://expressjs.com/)
-[![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.45-C5F74F?logo=drizzle&logoColor=black)](https://orm.drizzle.team/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![TMDB API](https://img.shields.io/badge/TMDB-API_v3-01D277?logo=themoviedatabase&logoColor=white)](https://www.themoviedb.org/)
-[![Live Demo](https://img.shields.io/badge/Demo-Live%20on%20Render-success)](https://watchlist-simplified.onrender.com/)
-
 > **A personal film and television series tracking application with instant TMDB metadata lookup, custom ratings, watch progress analytics, and a dark-mode dashboard.**
 
 [Live Application](https://watchlist-simplified.onrender.com/) • [Features](#features) • [Local Development](#local-development-setup) • [Monorepo Architecture](#monorepo-architecture) • [Contributing](CONTRIBUTING.md)
