@@ -10,7 +10,7 @@
   },
   "scripts": {
     "generate": "drizzle-kit generate --config ./drizzle.config.ts",
-    "migrate": "node src/migrate.mjs",
+    "migrate": "node migrate.mjs",
     "push": "drizzle-kit push --config ./drizzle.config.ts",
     "push-force": "drizzle-kit push --force --config ./drizzle.config.ts"
   },
