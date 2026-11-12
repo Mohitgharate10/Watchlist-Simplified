@@ -25,7 +25,9 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   if (token) {
     const payload = await verifyToken(token);
     if (!payload) {
-      res.status(401).json({ error: "Invalid or expired authentication token" });
+      res.clearCookie("auth_token");
+      req.user = null;
+      next();
       return;
     }
     req.user = payload;

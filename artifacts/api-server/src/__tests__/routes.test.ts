@@ -55,7 +55,7 @@ describe("API Routes & Security Verification", () => {
       });
       assert.equal(res.status, 401);
       const data = (await res.json()) as any;
-      assert.equal(data.error, "Invalid or expired authentication token");
+      assert.equal(data.error, "Authentication required");
     });
 
     test("GET /auth/me returns 401 when unauthenticated", async () => {
