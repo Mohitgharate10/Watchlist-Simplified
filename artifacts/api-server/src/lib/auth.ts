@@ -1,11 +1,30 @@
 import crypto from "node:crypto";
-
-const JWT_SECRET = process.env.JWT_SECRET || "watchlist-secret-key-change-in-production";
+import * as jose from "jose";
 
 export interface UserTokenPayload {
   id: number;
   username: string;
   email: string;
+}
+
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "FATAL: JWT_SECRET environment variable is missing. It must be set in production to prevent token forgery."
+      );
+    }
+    return new TextEncoder().encode("dev-insecure-fallback-secret-key-1234567890");
+  }
+  return new TextEncoder().encode(secret);
+}
+
+// Fail fast in production if JWT_SECRET is not configured
+if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
+  throw new Error(
+    "FATAL: JWT_SECRET environment variable is missing. It must be set in production to prevent token forgery."
+  );
 }
 
 export function hashPassword(password: string): Promise<string> {
@@ -36,57 +55,26 @@ export function verifyPassword(password: string, storedHash: string): Promise<bo
   });
 }
 
-function base64UrlEncode(data: string): string {
-  return Buffer.from(data).toString("base64url");
+export async function createToken(payload: UserTokenPayload, expiresIn = "7d"): Promise<string> {
+  const secret = getJwtSecret();
+  return await new jose.SignJWT({ ...payload })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(expiresIn)
+    .sign(secret);
 }
 
-function base64UrlDecode(data: string): string {
-  return Buffer.from(data, "base64url").toString("utf8");
-}
-
-export function createToken(payload: UserTokenPayload, expiresInSeconds = 7 * 24 * 3600): string {
-  const header = JSON.stringify({ alg: "HS256", typ: "JWT" });
-  const exp = Math.floor(Date.now() / 1000) + expiresInSeconds;
-  const body = JSON.stringify({ ...payload, exp });
-
-  const encodedHeader = base64UrlEncode(header);
-  const encodedBody = base64UrlEncode(body);
-  const message = `${encodedHeader}.${encodedBody}`;
-
-  const signature = crypto
-    .createHmac("sha256", JWT_SECRET)
-    .update(message)
-    .digest("base64url");
-
-  return `${message}.${signature}`;
-}
-
-export function verifyToken(token: string): UserTokenPayload | null {
+export async function verifyToken(token: string): Promise<UserTokenPayload | null> {
   try {
-    const parts = token.split(".");
-    if (parts.length !== 3) return null;
-
-    const [encodedHeader, encodedBody, signature] = parts;
-    const message = `${encodedHeader}.${encodedBody}`;
-
-    const expectedSignature = crypto
-      .createHmac("sha256", JWT_SECRET)
-      .update(message)
-      .digest("base64url");
-
-    if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
+    const secret = getJwtSecret();
+    const { payload } = await jose.jwtVerify(token, secret);
+    if (!payload.id || !payload.username || !payload.email) {
       return null;
     }
-
-    const payload = JSON.parse(base64UrlDecode(encodedBody)) as UserTokenPayload & { exp?: number };
-    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
-      return null;
-    }
-
     return {
-      id: payload.id,
-      username: payload.username,
-      email: payload.email,
+      id: Number(payload.id),
+      username: String(payload.username),
+      email: String(payload.email),
     };
   } catch {
     return null;

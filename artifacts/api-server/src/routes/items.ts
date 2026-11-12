@@ -1,7 +1,6 @@
 import { Router } from "express";
-import { db } from "@workspace/db";
-import { watchlistItems } from "@workspace/db";
-import { eq, desc, asc, and, or, sql, count, avg, ilike, isNull } from "drizzle-orm";
+import { db, watchlistItems } from "@workspace/db";
+import { eq, desc, asc, and, or, count, avg, ilike } from "drizzle-orm";
 import {
   CreateItemBody,
   UpdateItemBody,
@@ -13,29 +12,25 @@ import {
   RefreshItemFromTmdbParams,
   ImportWatchlistBody,
 } from "@workspace/api-zod";
+import { requireAuth } from "../middlewares/auth";
 import { fetchTmdbDetails } from "./tmdb";
 
 const router = Router();
 
-function parseNumericId(idParam: string): number | null {
-  const num = Number(idParam);
+function parseNumericId(idParam: string | string[] | undefined): number | null {
+  const val = Array.isArray(idParam) ? idParam[0] : idParam;
+  if (!val) return null;
+  const num = Number(val);
   if (!Number.isInteger(num) || num <= 0) {
     return null;
   }
   return num;
 }
 
-function getUserCondition(userId?: number) {
-  if (userId !== undefined) {
-    return eq(watchlistItems.userId, userId);
-  }
-  return isNull(watchlistItems.userId);
-}
-
 // ---------------------------------------------------------------------------
-// 1. GET /items/recent
+// 1. GET /items/recent (requires auth; strictly scoped to user)
 // ---------------------------------------------------------------------------
-router.get("/items/recent", async (req, res): Promise<void> => {
+router.get("/items/recent", requireAuth, async (req, res): Promise<void> => {
   const parsed = GetRecentItemsQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid query parameters", details: parsed.error.flatten() });
@@ -43,13 +38,13 @@ router.get("/items/recent", async (req, res): Promise<void> => {
   }
 
   const limit = parsed.data.limit ?? 6;
-  const userCond = getUserCondition(req.user?.id);
+  const userId = req.user!.id;
 
   try {
     const items = await db
       .select()
       .from(watchlistItems)
-      .where(userCond)
+      .where(eq(watchlistItems.userId, userId))
       .orderBy(desc(watchlistItems.updatedAt))
       .limit(limit);
 
@@ -61,9 +56,9 @@ router.get("/items/recent", async (req, res): Promise<void> => {
 });
 
 // ---------------------------------------------------------------------------
-// 2. GET /items (with search, sort, filter, and pagination)
+// 2. GET /items (requires auth; search, filter, sort, and pagination scoped to user)
 // ---------------------------------------------------------------------------
-router.get("/items", async (req, res): Promise<void> => {
+router.get("/items", requireAuth, async (req, res): Promise<void> => {
   const parsed = ListItemsQueryParams.safeParse(req.query);
   if (!parsed.success) {
     res.status(400).json({ error: "Invalid query parameters", details: parsed.error.flatten() });
@@ -71,8 +66,8 @@ router.get("/items", async (req, res): Promise<void> => {
   }
 
   const query = parsed.data;
-  const userCond = getUserCondition(req.user?.id);
-  const conditions = [userCond];
+  const userId = req.user!.id;
+  const conditions = [eq(watchlistItems.userId, userId)];
 
   if (query.status) {
     conditions.push(eq(watchlistItems.status, query.status as "want_to_watch" | "watching" | "watched"));
@@ -147,9 +142,9 @@ router.get("/items", async (req, res): Promise<void> => {
 });
 
 // ---------------------------------------------------------------------------
-// 3. POST /items (creates item; validates body; detects duplicates; returns real 500 on DB failure)
+// 3. POST /items (requires auth; creates item; prevents duplicates; returns 500 on DB failure)
 // ---------------------------------------------------------------------------
-router.post("/items", async (req, res): Promise<void> => {
+router.post("/items", requireAuth, async (req, res): Promise<void> => {
   const parseResult = CreateItemBody.safeParse(req.body);
   if (!parseResult.success) {
     res.status(400).json({ error: "Invalid item data", details: parseResult.error.flatten() });
@@ -157,16 +152,15 @@ router.post("/items", async (req, res): Promise<void> => {
   }
 
   const body = parseResult.data;
-  const userId = req.user?.id;
-  const userCond = getUserCondition(userId);
+  const userId = req.user!.id;
 
   try {
-    // Duplicate prevention using tmdbId
+    // Check if duplicate tmdbId exists for this user
     if (body.tmdbId) {
       const existing = await db
         .select()
         .from(watchlistItems)
-        .where(and(userCond, eq(watchlistItems.tmdbId, body.tmdbId)))
+        .where(and(eq(watchlistItems.userId, userId), eq(watchlistItems.tmdbId, body.tmdbId)))
         .limit(1);
 
       if (existing.length > 0) {
@@ -181,7 +175,7 @@ router.post("/items", async (req, res): Promise<void> => {
     const [item] = await db
       .insert(watchlistItems)
       .values({
-        userId: userId ?? null,
+        userId,
         tmdbId: body.tmdbId ?? null,
         title: body.title,
         type: body.type as "movie" | "series",
@@ -200,29 +194,34 @@ router.post("/items", async (req, res): Promise<void> => {
       .returning();
 
     res.status(201).json(item);
-  } catch (err) {
+  } catch (err: any) {
+    // Catch database unique index constraint violation (race conditions)
+    if (err?.code === "23505") {
+      res.status(409).json({ error: "This title is already in your watchlist" });
+      return;
+    }
     req.log.error({ err }, "Failed to create item in database");
     res.status(500).json({ error: "Database error while creating item" });
   }
 });
 
 // ---------------------------------------------------------------------------
-// 4. GET /items/:id (validates id; 400 on bad id, 404 on not found)
+// 4. GET /items/:id (requires auth; 400 on bad id, 404 on not found)
 // ---------------------------------------------------------------------------
-router.get("/items/:id", async (req, res): Promise<void> => {
+router.get("/items/:id", requireAuth, async (req, res): Promise<void> => {
   const id = parseNumericId(req.params.id);
   if (id === null) {
     res.status(400).json({ error: "Invalid item ID. Must be a positive integer." });
     return;
   }
 
-  const userCond = getUserCondition(req.user?.id);
+  const userId = req.user!.id;
 
   try {
     const [item] = await db
       .select()
       .from(watchlistItems)
-      .where(and(userCond, eq(watchlistItems.id, id)));
+      .where(and(eq(watchlistItems.userId, userId), eq(watchlistItems.id, id)));
 
     if (!item) {
       res.status(404).json({ error: "Item not found" });
@@ -237,9 +236,9 @@ router.get("/items/:id", async (req, res): Promise<void> => {
 });
 
 // ---------------------------------------------------------------------------
-// 5. PATCH /items/:id (validates id and body; 400 on bad input; 404 on missing)
+// 5. PATCH /items/:id (requires auth; 400 on bad input; 404 on missing)
 // ---------------------------------------------------------------------------
-router.patch("/items/:id", async (req, res): Promise<void> => {
+router.patch("/items/:id", requireAuth, async (req, res): Promise<void> => {
   const id = parseNumericId(req.params.id);
   if (id === null) {
     res.status(400).json({ error: "Invalid item ID. Must be a positive integer." });
@@ -253,7 +252,7 @@ router.patch("/items/:id", async (req, res): Promise<void> => {
   }
 
   const body = parseResult.data;
-  const userCond = getUserCondition(req.user?.id);
+  const userId = req.user!.id;
 
   try {
     const [item] = await db
@@ -275,7 +274,7 @@ router.patch("/items/:id", async (req, res): Promise<void> => {
         ...(body.totalEpisodes !== undefined && { totalEpisodes: body.totalEpisodes }),
         updatedAt: new Date(),
       })
-      .where(and(userCond, eq(watchlistItems.id, id)))
+      .where(and(eq(watchlistItems.userId, userId), eq(watchlistItems.id, id)))
       .returning();
 
     if (!item) {
@@ -284,28 +283,32 @@ router.patch("/items/:id", async (req, res): Promise<void> => {
     }
 
     res.json(item);
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.code === "23505") {
+      res.status(409).json({ error: "This title is already in your watchlist" });
+      return;
+    }
     req.log.error({ err }, "Failed to update item");
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // ---------------------------------------------------------------------------
-// 6. DELETE /items/:id (validates id; 400 on bad id, 404 on missing, 204 on success)
+// 6. DELETE /items/:id (requires auth; 400 on bad id, 404 on missing, 204 on success)
 // ---------------------------------------------------------------------------
-router.delete("/items/:id", async (req, res): Promise<void> => {
+router.delete("/items/:id", requireAuth, async (req, res): Promise<void> => {
   const id = parseNumericId(req.params.id);
   if (id === null) {
     res.status(400).json({ error: "Invalid item ID. Must be a positive integer." });
     return;
   }
 
-  const userCond = getUserCondition(req.user?.id);
+  const userId = req.user!.id;
 
   try {
     const deleted = await db
       .delete(watchlistItems)
-      .where(and(userCond, eq(watchlistItems.id, id)))
+      .where(and(eq(watchlistItems.userId, userId), eq(watchlistItems.id, id)))
       .returning({ id: watchlistItems.id });
 
     if (deleted.length === 0) {
@@ -321,22 +324,22 @@ router.delete("/items/:id", async (req, res): Promise<void> => {
 });
 
 // ---------------------------------------------------------------------------
-// 7. POST /items/:id/refresh (refreshes metadata from TMDB)
+// 7. POST /items/:id/refresh (requires auth; refreshes metadata from TMDB)
 // ---------------------------------------------------------------------------
-router.post("/items/:id/refresh", async (req, res): Promise<void> => {
+router.post("/items/:id/refresh", requireAuth, async (req, res): Promise<void> => {
   const id = parseNumericId(req.params.id);
   if (id === null) {
     res.status(400).json({ error: "Invalid item ID. Must be a positive integer." });
     return;
   }
 
-  const userCond = getUserCondition(req.user?.id);
+  const userId = req.user!.id;
 
   try {
     const [item] = await db
       .select()
       .from(watchlistItems)
-      .where(and(userCond, eq(watchlistItems.id, id)));
+      .where(and(eq(watchlistItems.userId, userId), eq(watchlistItems.id, id)));
 
     if (!item) {
       res.status(404).json({ error: "Item not found" });
@@ -369,7 +372,7 @@ router.post("/items/:id/refresh", async (req, res): Promise<void> => {
         ...(tmdbData.totalEpisodes ? { totalEpisodes: tmdbData.totalEpisodes } : {}),
         updatedAt: new Date(),
       })
-      .where(and(userCond, eq(watchlistItems.id, id)))
+      .where(and(eq(watchlistItems.userId, userId), eq(watchlistItems.id, id)))
       .returning();
 
     res.json(updated);
@@ -380,10 +383,11 @@ router.post("/items/:id/refresh", async (req, res): Promise<void> => {
 });
 
 // ---------------------------------------------------------------------------
-// 8. GET /stats (SQL aggregates: count, avg, group by; never loads all rows into memory)
+// 8. GET /stats (requires auth; SQL aggregates: count, avg, group by scoped to user)
 // ---------------------------------------------------------------------------
-router.get("/stats", async (req, res): Promise<void> => {
-  const userCond = getUserCondition(req.user?.id);
+router.get("/stats", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.user!.id;
+  const userCond = eq(watchlistItems.userId, userId);
 
   try {
     // 1. Overall total and average rating via SQL aggregate
@@ -452,16 +456,16 @@ router.get("/stats", async (req, res): Promise<void> => {
 });
 
 // ---------------------------------------------------------------------------
-// 9. GET /watchlist/export
+// 9. GET /watchlist/export (requires auth; strictly scoped to user)
 // ---------------------------------------------------------------------------
-router.get("/watchlist/export", async (req, res): Promise<void> => {
-  const userCond = getUserCondition(req.user?.id);
+router.get("/watchlist/export", requireAuth, async (req, res): Promise<void> => {
+  const userId = req.user!.id;
 
   try {
     const items = await db
       .select()
       .from(watchlistItems)
-      .where(userCond)
+      .where(eq(watchlistItems.userId, userId))
       .orderBy(desc(watchlistItems.createdAt));
 
     res.setHeader("Content-Disposition", 'attachment; filename="watchlist-export.json"');
@@ -473,9 +477,9 @@ router.get("/watchlist/export", async (req, res): Promise<void> => {
 });
 
 // ---------------------------------------------------------------------------
-// 10. POST /watchlist/import
+// 10. POST /watchlist/import (requires auth; transactional; capped at 500 items)
 // ---------------------------------------------------------------------------
-router.post("/watchlist/import", async (req, res): Promise<void> => {
+router.post("/watchlist/import", requireAuth, async (req, res): Promise<void> => {
   const parseResult = ImportWatchlistBody.safeParse(req.body);
   if (!parseResult.success) {
     res.status(400).json({ error: "Invalid import format", details: parseResult.error.flatten() });
@@ -483,60 +487,68 @@ router.post("/watchlist/import", async (req, res): Promise<void> => {
   }
 
   const itemsToImport = parseResult.data;
-  const userId = req.user?.id;
-  const userCond = getUserCondition(userId);
+  if (itemsToImport.length > 500) {
+    res.status(400).json({ error: "Import exceeds maximum limit of 500 items" });
+    return;
+  }
+
+  const userId = req.user!.id;
 
   try {
-    // Get existing items for this user to check duplicates
-    const existing = await db
-      .select({ tmdbId: watchlistItems.tmdbId, title: watchlistItems.title })
-      .from(watchlistItems)
-      .where(userCond);
+    const importResult = await db.transaction(async (tx) => {
+      // Get existing items for this user to check duplicates within transaction
+      const existing = await tx
+        .select({ tmdbId: watchlistItems.tmdbId, title: watchlistItems.title })
+        .from(watchlistItems)
+        .where(eq(watchlistItems.userId, userId));
 
-    const existingTmdbIds = new Set(existing.map((e) => e.tmdbId).filter(Boolean));
-    const existingTitles = new Set(existing.map((e) => e.title.toLowerCase()));
+      const existingTmdbIds = new Set(existing.map((e) => e.tmdbId).filter(Boolean));
+      const existingTitles = new Set(existing.map((e) => e.title.toLowerCase()));
 
-    let imported = 0;
-    let skipped = 0;
+      let imported = 0;
+      let skipped = 0;
 
-    for (const item of itemsToImport) {
-      if (item.tmdbId && existingTmdbIds.has(item.tmdbId)) {
-        skipped++;
-        continue;
+      for (const item of itemsToImport) {
+        if (item.tmdbId && existingTmdbIds.has(item.tmdbId)) {
+          skipped++;
+          continue;
+        }
+        if (!item.tmdbId && existingTitles.has(item.title.toLowerCase())) {
+          skipped++;
+          continue;
+        }
+
+        await tx.insert(watchlistItems).values({
+          userId,
+          tmdbId: item.tmdbId ?? null,
+          title: item.title,
+          type: item.type as "movie" | "series",
+          genre: item.genre,
+          year: item.year,
+          posterUrl: item.posterUrl,
+          description: item.description,
+          status: (item.status ?? "want_to_watch") as "want_to_watch" | "watching" | "watched",
+          rating: item.rating,
+          notes: item.notes,
+          seasonProgress: item.seasonProgress ?? (item.type === "series" ? 1 : 0),
+          episodeProgress: item.episodeProgress ?? 0,
+          totalSeasons: item.totalSeasons,
+          totalEpisodes: item.totalEpisodes,
+        });
+
+        if (item.tmdbId) existingTmdbIds.add(item.tmdbId);
+        existingTitles.add(item.title.toLowerCase());
+        imported++;
       }
-      if (!item.tmdbId && existingTitles.has(item.title.toLowerCase())) {
-        skipped++;
-        continue;
-      }
 
-      await db.insert(watchlistItems).values({
-        userId: userId ?? null,
-        tmdbId: item.tmdbId ?? null,
-        title: item.title,
-        type: item.type as "movie" | "series",
-        genre: item.genre,
-        year: item.year,
-        posterUrl: item.posterUrl,
-        description: item.description,
-        status: (item.status ?? "want_to_watch") as "want_to_watch" | "watching" | "watched",
-        rating: item.rating,
-        notes: item.notes,
-        seasonProgress: item.seasonProgress ?? (item.type === "series" ? 1 : 0),
-        episodeProgress: item.episodeProgress ?? 0,
-        totalSeasons: item.totalSeasons,
-        totalEpisodes: item.totalEpisodes,
-      });
-
-      if (item.tmdbId) existingTmdbIds.add(item.tmdbId);
-      existingTitles.add(item.title.toLowerCase());
-      imported++;
-    }
-
-    res.json({
-      imported,
-      skipped,
-      total: itemsToImport.length,
+      return {
+        imported,
+        skipped,
+        total: itemsToImport.length,
+      };
     });
+
+    res.json(importResult);
   } catch (err) {
     req.log.error({ err }, "Failed to import watchlist");
     res.status(500).json({ error: "Internal server error" });

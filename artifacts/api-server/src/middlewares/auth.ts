@@ -9,7 +9,7 @@ declare global {
   }
 }
 
-export function authMiddleware(req: Request, _res: Response, next: NextFunction): void {
+export async function authMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   const authHeader = req.headers.authorization;
   let token: string | undefined;
 
@@ -23,12 +23,12 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
   }
 
   if (token) {
-    const payload = verifyToken(token);
-    if (payload) {
-      req.user = payload;
-    } else {
-      req.user = null;
+    const payload = await verifyToken(token);
+    if (!payload) {
+      res.status(401).json({ error: "Invalid or expired authentication token" });
+      return;
     }
+    req.user = payload;
   } else {
     req.user = null;
   }

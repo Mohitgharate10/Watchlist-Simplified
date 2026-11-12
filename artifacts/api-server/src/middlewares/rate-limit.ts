@@ -25,7 +25,7 @@ export function createRateLimiter(options: RateLimitOptions) {
 
   return (req: Request, res: Response, next: NextFunction): void => {
     const ip = req.ip || req.socket.remoteAddress || "unknown";
-    const key = `${ip}:${req.baseUrl}${req.path}`;
+    const key = `${ip}:${req.baseUrl || ""}${req.path}`;
     const now = Date.now();
 
     const timestamps = (requests.get(key) || []).filter((t) => now - t < windowMs);
@@ -50,4 +50,10 @@ export const tmdbRateLimiter = createRateLimiter({
   windowMs: 60 * 1000, // 1 minute
   max: 30, // 30 requests per minute
   message: "TMDB rate limit exceeded, please slow down.",
+});
+
+export const authRateLimiter = createRateLimiter({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // 10 attempts per minute
+  message: "Too many authentication attempts, please wait a minute before trying again.",
 });

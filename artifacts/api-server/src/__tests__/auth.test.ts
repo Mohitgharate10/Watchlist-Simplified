@@ -25,35 +25,35 @@ describe("Authentication Utilities", () => {
     assert.equal(await verifyPassword(password, hash2), true);
   });
 
-  test("createToken and verifyToken work with valid payload", () => {
+  test("createToken and verifyToken work with valid payload", async () => {
     const payload = { id: 42, username: "moviebuff", email: "buff@example.com" };
-    const token = createToken(payload);
+    const token = await createToken(payload);
 
     assert.ok(typeof token === "string");
     assert.equal(token.split(".").length, 3, "JWT must have 3 dot-separated parts");
 
-    const decoded = verifyToken(token);
+    const decoded = await verifyToken(token);
     assert.deepEqual(decoded, payload);
   });
 
-  test("verifyToken rejects tampered or malformed tokens", () => {
+  test("verifyToken rejects tampered or malformed tokens", async () => {
     const payload = { id: 1, username: "alice", email: "alice@test.com" };
-    const token = createToken(payload);
+    const token = await createToken(payload);
 
     // Tamper with payload
     const parts = token.split(".");
     const tampered = `${parts[0]}.eyJhZG1pbiI6dHJ1ZX0.${parts[2]}`;
-    assert.equal(verifyToken(tampered), null);
+    assert.equal(await verifyToken(tampered), null);
 
     // Completely invalid string
-    assert.equal(verifyToken("invalid.token"), null);
-    assert.equal(verifyToken(""), null);
+    assert.equal(await verifyToken("invalid.token"), null);
+    assert.equal(await verifyToken(""), null);
   });
 
-  test("verifyToken rejects expired tokens", () => {
+  test("verifyToken rejects expired tokens", async () => {
     const payload = { id: 99, username: "expired", email: "exp@test.com" };
-    // Token that expired 10 seconds ago
-    const expiredToken = createToken(payload, -10);
-    assert.equal(verifyToken(expiredToken), null);
+    // Token that expired
+    const expiredToken = await createToken(payload, "-10s");
+    assert.equal(await verifyToken(expiredToken), null);
   });
 });

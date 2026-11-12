@@ -1,17 +1,25 @@
-import { pgTable, serial, text, integer, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, integer, timestamp, pgEnum, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
 export const itemTypeEnum = pgEnum("item_type", ["movie", "series"]);
 export const itemStatusEnum = pgEnum("item_status", ["want_to_watch", "watching", "watched"]);
 
-export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
-  username: text("username").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-});
+export const users = pgTable(
+  "users",
+  {
+    id: serial("id").primaryKey(),
+    email: text("email").notNull().unique(),
+    username: text("username").notNull().unique(),
+    passwordHash: text("password_hash").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("users_lower_username_idx").on(sql`lower(${table.username})`),
+    uniqueIndex("users_lower_email_idx").on(sql`lower(${table.email})`),
+  ]
+);
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -21,26 +29,34 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
-export const watchlistItems = pgTable("watchlist_items", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
-  tmdbId: integer("tmdb_id"),
-  title: text("title").notNull(),
-  type: itemTypeEnum("type").notNull(),
-  genre: text("genre"),
-  year: integer("year"),
-  posterUrl: text("poster_url"),
-  description: text("description"),
-  status: itemStatusEnum("status").notNull().default("want_to_watch"),
-  rating: integer("rating"),
-  notes: text("notes"),
-  seasonProgress: integer("season_progress").notNull().default(1),
-  episodeProgress: integer("episode_progress").notNull().default(0),
-  totalSeasons: integer("total_seasons"),
-  totalEpisodes: integer("total_episodes"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+export const watchlistItems = pgTable(
+  "watchlist_items",
+  {
+    id: serial("id").primaryKey(),
+    userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+    tmdbId: integer("tmdb_id"),
+    title: text("title").notNull(),
+    type: itemTypeEnum("type").notNull(),
+    genre: text("genre"),
+    year: integer("year"),
+    posterUrl: text("poster_url"),
+    description: text("description"),
+    status: itemStatusEnum("status").notNull().default("want_to_watch"),
+    rating: integer("rating"),
+    notes: text("notes"),
+    seasonProgress: integer("season_progress").notNull().default(1),
+    episodeProgress: integer("episode_progress").notNull().default(0),
+    totalSeasons: integer("total_seasons"),
+    totalEpisodes: integer("total_episodes"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex("watchlist_items_user_tmdb_unique")
+      .on(table.userId, table.tmdbId)
+      .where(sql`${table.tmdbId} IS NOT NULL`),
+  ]
+);
 
 export const insertWatchlistItemSchema = createInsertSchema(watchlistItems).omit({
   id: true,

@@ -14,6 +14,9 @@ const __dirname = path.dirname(__filename);
 
 const app: Express = express();
 
+// Trust reverse proxy (e.g. Render, Cloudflare) for accurate client IP in rate limiters
+app.set("trust proxy", 1);
+
 app.use(
   pinoHttp({
     logger,

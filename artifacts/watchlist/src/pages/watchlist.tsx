@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useListItems, ListItemsStatus, ListItemsType } from "@workspace/api-client-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Lock } from "lucide-react";
 import { ItemCard } from "@/components/item-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -14,9 +14,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ImportExportDialog } from "@/components/import-export-dialog";
+import { AuthDialog } from "@/components/auth-dialog";
+import { useAuth } from "@/lib/auth-context";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function WatchlistPage() {
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<ListItemsStatus | "all">("all");
   const [typeFilter, setTypeFilter] = useState<ListItemsType | "all">("all");
@@ -41,6 +44,7 @@ export function WatchlistPage() {
     },
     {
       query: {
+        enabled: !!user,
         queryKey: [
           "getListItems",
           {
@@ -64,6 +68,29 @@ export function WatchlistPage() {
   const handleFilterChange = () => {
     setPage(1);
   };
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto">
+        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-5 text-primary shadow-lg shadow-primary/10">
+          <Lock className="w-7 h-7" />
+        </div>
+        <h2 className="font-serif text-2xl sm:text-3xl font-medium mb-3 text-foreground">
+          Private Watchlist Collection
+        </h2>
+        <p className="text-muted-foreground text-sm sm:text-base leading-relaxed mb-6">
+          Your collection is private and synchronized to your personal account. Sign in or register to browse, search, and manage your watchlist.
+        </p>
+        <AuthDialog
+          trigger={
+            <Button size="lg" className="px-6 font-medium shadow-lg shadow-primary/20">
+              Sign In / Create Account
+            </Button>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8">

@@ -1,13 +1,14 @@
 import { Router } from "express";
 import { RegisterBody, LoginBody } from "@workspace/api-zod";
 import { db, users } from "@workspace/db";
-import { eq, or } from "drizzle-orm";
+import { sql, or } from "drizzle-orm";
 import { hashPassword, verifyPassword, createToken } from "../lib/auth";
 import { requireAuth } from "../middlewares/auth";
+import { authRateLimiter } from "../middlewares/rate-limit";
 
 const router = Router();
 
-router.post("/auth/register", async (req, res): Promise<void> => {
+router.post("/auth/register", authRateLimiter, async (req, res): Promise<void> => {
   const parseResult = RegisterBody.safeParse(req.body);
   if (!parseResult.success) {
     res.status(400).json({ error: "Invalid registration data", details: parseResult.error.flatten() });
@@ -20,7 +21,12 @@ router.post("/auth/register", async (req, res): Promise<void> => {
     const existing = await db
       .select()
       .from(users)
-      .where(or(eq(users.username, username), eq(users.email, email.toLowerCase())))
+      .where(
+        or(
+          sql`lower(${users.username}) = lower(${username})`,
+          sql`lower(${users.email}) = lower(${email})`
+        )
+      )
       .limit(1);
 
     if (existing.length > 0) {
@@ -43,7 +49,7 @@ router.post("/auth/register", async (req, res): Promise<void> => {
       })
       .returning();
 
-    const token = createToken({
+    const token = await createToken({
       id: newUser.id,
       username: newUser.username,
       email: newUser.email,
@@ -64,13 +70,17 @@ router.post("/auth/register", async (req, res): Promise<void> => {
         email: newUser.email,
       },
     });
-  } catch (err) {
+  } catch (err: any) {
+    if (err?.code === "23505") {
+      res.status(400).json({ error: "Username or email is already in use" });
+      return;
+    }
     req.log.error({ err }, "Failed to register user");
     res.status(500).json({ error: "Failed to register user" });
   }
 });
 
-router.post("/auth/login", async (req, res): Promise<void> => {
+router.post("/auth/login", authRateLimiter, async (req, res): Promise<void> => {
   const parseResult = LoginBody.safeParse(req.body);
   if (!parseResult.success) {
     res.status(400).json({ error: "Invalid login data", details: parseResult.error.flatten() });
@@ -86,8 +96,8 @@ router.post("/auth/login", async (req, res): Promise<void> => {
       .from(users)
       .where(
         isEmail
-          ? eq(users.email, usernameOrEmail.toLowerCase())
-          : eq(users.username, usernameOrEmail)
+          ? sql`lower(${users.email}) = lower(${usernameOrEmail})`
+          : sql`lower(${users.username}) = lower(${usernameOrEmail})`
       )
       .limit(1);
 
@@ -102,7 +112,7 @@ router.post("/auth/login", async (req, res): Promise<void> => {
       return;
     }
 
-    const token = createToken({
+    const token = await createToken({
       id: user.id,
       username: user.username,
       email: user.email,
