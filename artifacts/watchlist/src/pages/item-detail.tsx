@@ -1,18 +1,36 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
-import { 
-  useGetItem, 
-  useUpdateItem, 
-  useDeleteItem, 
+import {
+  useGetItem,
+  useUpdateItem,
+  useDeleteItem,
+  useRefreshItemFromTmdb,
+  useGetWatchProviders,
   getGetItemQueryKey,
-  WatchlistItemStatus
+  getGetWatchProvidersQueryKey,
+  WatchlistItemStatus,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/status-badge";
-import { ArrowLeft, Star, Trash2, Calendar, Film, Tv, Clock, Edit2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Star,
+  Trash2,
+  Calendar,
+  Film,
+  Tv,
+  Clock,
+  Edit2,
+  RefreshCw,
+  Tv2,
+  Plus,
+  Minus,
+  ExternalLink,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -43,16 +61,29 @@ export function ItemDetail() {
 
   const [notes, setNotes] = useState("");
   const [debouncedNotes, setDebouncedNotes] = useState("");
-  
+
   const { data: item, isLoading } = useGetItem(id, {
     query: {
-      enabled: !!id,
-      queryKey: getGetItemQueryKey(id)
-    }
+      enabled: !!id && !isNaN(id),
+      queryKey: getGetItemQueryKey(id),
+    },
   });
 
   const updateItem = useUpdateItem();
   const deleteItem = useDeleteItem();
+  const refreshItem = useRefreshItemFromTmdb();
+
+  // Watch providers query
+  const { data: watchProviders, isLoading: isLoadingProviders } = useGetWatchProviders(
+    item?.type ?? "movie",
+    item?.tmdbId ?? 0,
+    {
+      query: {
+        queryKey: getGetWatchProvidersQueryKey(item?.type ?? "movie", item?.tmdbId ?? 0),
+        enabled: !!item?.tmdbId,
+      },
+    }
+  );
 
   // Handle note debouncing
   useEffect(() => {
@@ -84,7 +115,7 @@ export function ItemDetail() {
           onSuccess: (data) => {
             lastSavedNotes.current = data.notes ?? null;
             queryClient.setQueryData(getGetItemQueryKey(id), data);
-          }
+          },
         }
       );
     }
@@ -101,7 +132,7 @@ export function ItemDetail() {
         onSuccess: (data) => {
           queryClient.setQueryData(getGetItemQueryKey(id), data);
           toast({ title: "Status updated" });
-        }
+        },
       }
     );
   };
@@ -114,7 +145,47 @@ export function ItemDetail() {
         onSuccess: (data) => {
           queryClient.setQueryData(getGetItemQueryKey(id), data);
           toast({ title: "Rating updated" });
-        }
+        },
+      }
+    );
+  };
+
+  const handleProgressChange = (season: number, episode: number) => {
+    const validSeason = Math.max(1, season);
+    const validEpisode = Math.max(0, episode);
+    updateItem.mutate(
+      {
+        id,
+        data: {
+          seasonProgress: validSeason,
+          episodeProgress: validEpisode,
+          status: item.status === "want_to_watch" ? "watching" : item.status,
+        },
+      },
+      {
+        onSuccess: (data) => {
+          queryClient.setQueryData(getGetItemQueryKey(id), data);
+          toast({ title: `Progress updated: S${validSeason} E${validEpisode}` });
+        },
+      }
+    );
+  };
+
+  const handleRefresh = () => {
+    refreshItem.mutate(
+      { id },
+      {
+        onSuccess: (data) => {
+          queryClient.setQueryData(getGetItemQueryKey(id), data);
+          toast({ title: "Refreshed from TMDB", description: "Latest metadata updated successfully." });
+        },
+        onError: (err: any) => {
+          toast({
+            title: "Refresh failed",
+            description: err.message || "Failed to fetch updated data from TMDB.",
+            variant: "destructive",
+          });
+        },
       }
     );
   };
@@ -126,29 +197,44 @@ export function ItemDetail() {
         onSuccess: () => {
           toast({ title: "Item deleted" });
           setLocation("/watchlist");
-        }
+        },
       }
     );
   };
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 animate-in fade-in duration-500 sm:space-y-8">
-      <Button 
-        variant="ghost" 
-        onClick={() => setLocation("/watchlist")}
-        className="gap-2 pl-0 text-sm text-muted-foreground hover:text-foreground sm:text-base"
-      >
-        <ArrowLeft className="w-4 h-4" /> Back to Watchlist
-      </Button>
+      <div className="flex items-center justify-between">
+        <Button
+          variant="ghost"
+          onClick={() => setLocation("/watchlist")}
+          className="gap-2 pl-0 text-sm text-muted-foreground hover:text-foreground sm:text-base"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Watchlist
+        </Button>
+
+        {item.tmdbId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshItem.isPending}
+            className="gap-2 text-xs"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshItem.isPending ? "animate-spin" : ""}`} />
+            Refresh TMDB
+          </Button>
+        )}
+      </div>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:gap-12">
         {/* Left Column: Poster & Actions */}
         <div className="w-full shrink-0 space-y-6 lg:w-[350px]">
           <div className="mx-auto aspect-[2/3] w-full max-w-[280px] overflow-hidden rounded-lg border border-border/50 bg-muted shadow-2xl relative sm:max-w-[350px] lg:mx-0 lg:max-w-none">
             {item.posterUrl ? (
-              <img 
-                src={item.posterUrl} 
-                alt={`Poster for ${item.title}`} 
+              <img
+                src={item.posterUrl}
+                alt={`Poster for ${item.title}`}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -156,7 +242,7 @@ export function ItemDetail() {
                 {item.type === "movie" ? <Film className="w-24 h-24" /> : <Tv className="w-24 h-24" />}
               </div>
             )}
-            
+
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent pointer-events-none" />
           </div>
 
@@ -183,7 +269,7 @@ export function ItemDetail() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">Not rated</SelectItem>
-                  {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map(r => (
+                  {[10, 9, 8, 7, 6, 5, 4, 3, 2, 1].map((r) => (
                     <SelectItem key={r} value={r.toString()}>
                       <div className="flex items-center gap-2">
                         {r} <Star className="w-3 h-3 fill-primary text-primary" />
@@ -194,16 +280,170 @@ export function ItemDetail() {
               </Select>
             </div>
           </div>
+
+          {/* Series Progress Card */}
+          {item.type === "series" && (
+            <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold flex items-center gap-1.5 text-foreground">
+                  <Tv2 className="w-4 h-4 text-primary" /> Episode Progress
+                </span>
+                <span className="text-xs font-mono text-primary font-bold">
+                  S{item.seasonProgress || 1} : E{item.episodeProgress ?? 0}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] text-muted-foreground">Season</label>
+                  <div className="flex items-center gap-1">
+                    <Input
+                      type="number"
+                      min={1}
+                      value={item.seasonProgress || 1}
+                      onChange={(e) =>
+                        handleProgressChange(Number(e.target.value), item.episodeProgress ?? 0)
+                      }
+                      className="h-8 text-center bg-background"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] text-muted-foreground">Episode</label>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() =>
+                        handleProgressChange(item.seasonProgress || 1, (item.episodeProgress ?? 0) - 1)
+                      }
+                      disabled={(item.episodeProgress ?? 0) <= 0}
+                    >
+                      <Minus className="w-3 h-3" />
+                    </Button>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={item.episodeProgress ?? 0}
+                      onChange={(e) =>
+                        handleProgressChange(item.seasonProgress || 1, Number(e.target.value))
+                      }
+                      className="h-8 text-center bg-background"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 shrink-0"
+                      onClick={() =>
+                        handleProgressChange(item.seasonProgress || 1, (item.episodeProgress ?? 0) + 1)
+                      }
+                    >
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Where to Watch Section */}
+          {item.tmdbId && (
+            <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                  <Tv className="w-4 h-4 text-primary" /> Where to Watch
+                </h4>
+                {watchProviders?.link && (
+                  <a
+                    href={watchProviders.link}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] text-primary hover:underline flex items-center gap-0.5"
+                  >
+                    TMDB <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+              </div>
+
+              {isLoadingProviders ? (
+                <div className="space-y-2">
+                  <Skeleton className="h-8 w-full" />
+                </div>
+              ) : watchProviders &&
+                ((watchProviders.streaming && watchProviders.streaming.length > 0) ||
+                  (watchProviders.rent && watchProviders.rent.length > 0) ||
+                  (watchProviders.buy && watchProviders.buy.length > 0)) ? (
+                <div className="space-y-3">
+                  {watchProviders.streaming && watchProviders.streaming.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                        Stream
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {watchProviders.streaming.map((provider) => (
+                          <div
+                            key={provider.providerId ?? provider.name}
+                            className="flex items-center gap-1.5 bg-background/80 border border-border/60 rounded px-2 py-1 text-xs"
+                            title={provider.name}
+                          >
+                            {provider.logoUrl && (
+                              <img
+                                src={provider.logoUrl}
+                                alt={provider.name}
+                                className="w-4 h-4 rounded-sm object-contain"
+                              />
+                            )}
+                            <span className="font-medium text-[11px]">{provider.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {watchProviders.rent && watchProviders.rent.length > 0 && (
+                    <div className="space-y-1.5">
+                      <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                        Rent
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {watchProviders.rent.slice(0, 4).map((provider) => (
+                          <div
+                            key={provider.providerId ?? provider.name}
+                            className="flex items-center gap-1.5 bg-background/60 border border-border/40 rounded px-2 py-1 text-[11px]"
+                          >
+                            {provider.logoUrl && (
+                              <img
+                                src={provider.logoUrl}
+                                alt={provider.name}
+                                className="w-3.5 h-3.5 rounded-sm object-contain"
+                              />
+                            )}
+                            <span>{provider.name}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  No streaming providers listed for this region. Check the TMDB link for more options.
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Column: Info & Notes */}
-         <div className="min-w-0 flex-1 space-y-6 sm:space-y-8">
+        <div className="min-w-0 flex-1 space-y-6 sm:space-y-8">
           <div>
-             <div className="mb-4 flex items-start justify-between gap-3 sm:gap-4">
-               <h1 className="min-w-0 flex-1 font-serif text-3xl leading-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
+            <div className="mb-4 flex items-start justify-between gap-3 sm:gap-4">
+              <h1 className="min-w-0 flex-1 font-serif text-3xl leading-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
                 {item.title}
               </h1>
-              
+
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0">
@@ -226,7 +466,7 @@ export function ItemDetail() {
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-            
+
             <div className="flex flex-wrap items-center gap-3 text-muted-foreground font-medium mb-6">
               <StatusBadge status={item.status} />
               <span className="w-1.5 h-1.5 rounded-full bg-border" />
@@ -234,7 +474,7 @@ export function ItemDetail() {
                 {item.type === "movie" ? <Film className="w-4 h-4" /> : <Tv className="w-4 h-4" />}
                 <span className="capitalize">{item.type}</span>
               </div>
-              
+
               {item.year && (
                 <>
                   <span className="w-1.5 h-1.5 rounded-full bg-border" />
@@ -244,7 +484,7 @@ export function ItemDetail() {
                   </div>
                 </>
               )}
-              
+
               {item.rating && (
                 <>
                   <span className="w-1.5 h-1.5 rounded-full bg-border" />
@@ -267,7 +507,7 @@ export function ItemDetail() {
             {item.description && (
               <section>
                 <h3 className="text-xl font-serif mb-3 flex items-center gap-2">
-                  <Edit2 className="w-5 h-5 text-muted-foreground" /> 
+                  <Edit2 className="w-5 h-5 text-muted-foreground" />
                   Synopsis
                 </h3>
                 <p className="rounded-lg border border-border/40 bg-card/20 p-4 text-base leading-relaxed text-muted-foreground sm:p-6 sm:text-lg">
@@ -284,16 +524,16 @@ export function ItemDetail() {
                   {debouncedNotes !== notes ? "Saving..." : "Saved"}
                 </span>
               </div>
-              <Textarea 
+              <Textarea
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Write your thoughts, reviews, or favorite quotes..."
-                 className="min-h-[220px] resize-y bg-card/30 border-border/50 p-4 text-base leading-relaxed placeholder:text-muted-foreground/30 focus-visible:ring-primary/20 sm:min-h-[250px] sm:p-6"
+                className="min-h-[220px] resize-y bg-card/30 border-border/50 p-4 text-base leading-relaxed placeholder:text-muted-foreground/30 focus-visible:ring-primary/20 sm:min-h-[250px] sm:p-6"
               />
             </section>
 
             <div className="text-sm text-muted-foreground pt-8 border-t border-border/50">
-              Added on {format(new Date(item.createdAt), 'MMMM d, yyyy')}
+              Added on {format(new Date(item.createdAt), "MMMM d, yyyy")}
             </div>
           </div>
         </div>

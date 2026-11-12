@@ -18,20 +18,89 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
- * @summary List all watchlist items
+ * @summary Register a new user
  */
+export const registerBodyUsernameMin = 3;
+
+export const registerBodyPasswordMin = 6;
+
+
+
+export const RegisterBody = zod.object({
+  "username": zod.string().min(registerBodyUsernameMin),
+  "email": zod.string().email(),
+  "password": zod.string().min(registerBodyPasswordMin)
+})
+
+
+/**
+ * @summary Log in with username or email
+ */
+
+
+
+
+export const LoginBody = zod.object({
+  "usernameOrEmail": zod.string().min(1),
+  "password": zod.string().min(1)
+})
+
+export const LoginResponse = zod.object({
+  "token": zod.string(),
+  "user": zod.object({
+  "id": zod.number(),
+  "username": zod.string(),
+  "email": zod.string()
+})
+})
+
+
+/**
+ * @summary Get the currently authenticated user
+ */
+export const GetCurrentUserResponse = zod.object({
+  "id": zod.number(),
+  "username": zod.string(),
+  "email": zod.string()
+})
+
+
+/**
+ * @summary Log out current user
+ */
+export const LogoutResponse = zod.object({
+  "success": zod.boolean()
+})
+
+
+/**
+ * @summary List watchlist items with search, filter, sort and pagination
+ */
+export const listItemsQuerySortByDefault = `updatedAt`;
+export const listItemsQuerySortOrderDefault = `desc`;
+export const listItemsQueryPageDefault = 1;
+export const listItemsQueryPageSizeDefault = 12;
+
 export const ListItemsQueryParams = zod.object({
   "status": zod.enum(['want_to_watch', 'watching', 'watched']).optional(),
   "type": zod.enum(['movie', 'series']).optional(),
-  "genre": zod.coerce.string().optional()
+  "genre": zod.coerce.string().optional(),
+  "search": zod.coerce.string().optional(),
+  "sortBy": zod.enum(['updatedAt', 'createdAt', 'title', 'year', 'rating']).default(listItemsQuerySortByDefault),
+  "sortOrder": zod.enum(['asc', 'desc']).default(listItemsQuerySortOrderDefault),
+  "page": zod.coerce.number().default(listItemsQueryPageDefault),
+  "pageSize": zod.coerce.number().default(listItemsQueryPageSizeDefault)
 })
 
-export const listItemsResponseRatingMax = 10;
+export const listItemsResponseItemsItemRatingMax = 10;
 
 
 
-export const ListItemsResponseItem = zod.object({
+export const ListItemsResponse = zod.object({
+  "items": zod.array(zod.object({
   "id": zod.number(),
+  "userId": zod.number().nullish(),
+  "tmdbId": zod.number().nullish(),
   "title": zod.string(),
   "type": zod.enum(['movie', 'series']),
   "genre": zod.string().nullish(),
@@ -39,12 +108,20 @@ export const ListItemsResponseItem = zod.object({
   "posterUrl": zod.string().nullish(),
   "description": zod.string().nullish(),
   "status": zod.enum(['want_to_watch', 'watching', 'watched']),
-  "rating": zod.number().min(1).max(listItemsResponseRatingMax).nullish(),
+  "rating": zod.number().min(1).max(listItemsResponseItemsItemRatingMax).nullish(),
   "notes": zod.string().nullish(),
+  "seasonProgress": zod.number(),
+  "episodeProgress": zod.number(),
+  "totalSeasons": zod.number().nullish(),
+  "totalEpisodes": zod.number().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
+})),
+  "total": zod.number(),
+  "page": zod.number(),
+  "pageSize": zod.number(),
+  "totalPages": zod.number()
 })
-export const ListItemsResponse = zod.array(ListItemsResponseItem)
 
 
 /**
@@ -54,7 +131,8 @@ export const ListItemsResponse = zod.array(ListItemsResponseItem)
 export const createItemBodyStatusDefault = `want_to_watch`;
 export const createItemBodyRatingMax = 10;
 
-
+export const createItemBodySeasonProgressDefault = 1;
+export const createItemBodyEpisodeProgressDefault = 0;
 
 export const CreateItemBody = zod.object({
   "title": zod.string().min(1),
@@ -65,7 +143,12 @@ export const CreateItemBody = zod.object({
   "description": zod.string().optional(),
   "status": zod.enum(['want_to_watch', 'watching', 'watched']).default(createItemBodyStatusDefault),
   "rating": zod.number().min(1).max(createItemBodyRatingMax).optional(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "tmdbId": zod.number().optional(),
+  "seasonProgress": zod.number().default(createItemBodySeasonProgressDefault),
+  "episodeProgress": zod.number().default(createItemBodyEpisodeProgressDefault),
+  "totalSeasons": zod.number().optional(),
+  "totalEpisodes": zod.number().optional()
 })
 
 
@@ -82,6 +165,8 @@ export const getItemResponseRatingMax = 10;
 
 export const GetItemResponse = zod.object({
   "id": zod.number(),
+  "userId": zod.number().nullish(),
+  "tmdbId": zod.number().nullish(),
   "title": zod.string(),
   "type": zod.enum(['movie', 'series']),
   "genre": zod.string().nullish(),
@@ -91,6 +176,10 @@ export const GetItemResponse = zod.object({
   "status": zod.enum(['want_to_watch', 'watching', 'watched']),
   "rating": zod.number().min(1).max(getItemResponseRatingMax).nullish(),
   "notes": zod.string().nullish(),
+  "seasonProgress": zod.number(),
+  "episodeProgress": zod.number(),
+  "totalSeasons": zod.number().nullish(),
+  "totalEpisodes": zod.number().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -117,7 +206,12 @@ export const UpdateItemBody = zod.object({
   "description": zod.string().optional(),
   "status": zod.enum(['want_to_watch', 'watching', 'watched']).optional(),
   "rating": zod.number().min(1).max(updateItemBodyRatingMax).optional(),
-  "notes": zod.string().optional()
+  "notes": zod.string().optional(),
+  "tmdbId": zod.number().optional(),
+  "seasonProgress": zod.number().optional(),
+  "episodeProgress": zod.number().optional(),
+  "totalSeasons": zod.number().optional(),
+  "totalEpisodes": zod.number().optional()
 })
 
 export const updateItemResponseRatingMax = 10;
@@ -126,6 +220,8 @@ export const updateItemResponseRatingMax = 10;
 
 export const UpdateItemResponse = zod.object({
   "id": zod.number(),
+  "userId": zod.number().nullish(),
+  "tmdbId": zod.number().nullish(),
   "title": zod.string(),
   "type": zod.enum(['movie', 'series']),
   "genre": zod.string().nullish(),
@@ -135,6 +231,10 @@ export const UpdateItemResponse = zod.object({
   "status": zod.enum(['want_to_watch', 'watching', 'watched']),
   "rating": zod.number().min(1).max(updateItemResponseRatingMax).nullish(),
   "notes": zod.string().nullish(),
+  "seasonProgress": zod.number(),
+  "episodeProgress": zod.number(),
+  "totalSeasons": zod.number().nullish(),
+  "totalEpisodes": zod.number().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
@@ -145,6 +245,39 @@ export const UpdateItemResponse = zod.object({
  */
 export const DeleteItemParams = zod.object({
   "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Refresh item details from TMDB
+ */
+export const RefreshItemFromTmdbParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const refreshItemFromTmdbResponseRatingMax = 10;
+
+
+
+export const RefreshItemFromTmdbResponse = zod.object({
+  "id": zod.number(),
+  "userId": zod.number().nullish(),
+  "tmdbId": zod.number().nullish(),
+  "title": zod.string(),
+  "type": zod.enum(['movie', 'series']),
+  "genre": zod.string().nullish(),
+  "year": zod.number().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "status": zod.enum(['want_to_watch', 'watching', 'watched']),
+  "rating": zod.number().min(1).max(refreshItemFromTmdbResponseRatingMax).nullish(),
+  "notes": zod.string().nullish(),
+  "seasonProgress": zod.number(),
+  "episodeProgress": zod.number(),
+  "totalSeasons": zod.number().nullish(),
+  "totalEpisodes": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
 })
 
 
@@ -181,6 +314,8 @@ export const getRecentItemsResponseRatingMax = 10;
 
 export const GetRecentItemsResponseItem = zod.object({
   "id": zod.number(),
+  "userId": zod.number().nullish(),
+  "tmdbId": zod.number().nullish(),
   "title": zod.string(),
   "type": zod.enum(['movie', 'series']),
   "genre": zod.string().nullish(),
@@ -190,10 +325,79 @@ export const GetRecentItemsResponseItem = zod.object({
   "status": zod.enum(['want_to_watch', 'watching', 'watched']),
   "rating": zod.number().min(1).max(getRecentItemsResponseRatingMax).nullish(),
   "notes": zod.string().nullish(),
+  "seasonProgress": zod.number(),
+  "episodeProgress": zod.number(),
+  "totalSeasons": zod.number().nullish(),
+  "totalEpisodes": zod.number().nullish(),
   "createdAt": zod.coerce.date(),
   "updatedAt": zod.coerce.date()
 })
 export const GetRecentItemsResponse = zod.array(GetRecentItemsResponseItem)
+
+
+/**
+ * @summary Export all watchlist items for the authenticated user
+ */
+export const exportWatchlistResponseRatingMax = 10;
+
+
+
+export const ExportWatchlistResponseItem = zod.object({
+  "id": zod.number(),
+  "userId": zod.number().nullish(),
+  "tmdbId": zod.number().nullish(),
+  "title": zod.string(),
+  "type": zod.enum(['movie', 'series']),
+  "genre": zod.string().nullish(),
+  "year": zod.number().nullish(),
+  "posterUrl": zod.string().nullish(),
+  "description": zod.string().nullish(),
+  "status": zod.enum(['want_to_watch', 'watching', 'watched']),
+  "rating": zod.number().min(1).max(exportWatchlistResponseRatingMax).nullish(),
+  "notes": zod.string().nullish(),
+  "seasonProgress": zod.number(),
+  "episodeProgress": zod.number(),
+  "totalSeasons": zod.number().nullish(),
+  "totalEpisodes": zod.number().nullish(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+export const ExportWatchlistResponse = zod.array(ExportWatchlistResponseItem)
+
+
+/**
+ * @summary Import watchlist items
+ */
+
+export const importWatchlistBodyStatusDefault = `want_to_watch`;
+export const importWatchlistBodyRatingMax = 10;
+
+export const importWatchlistBodySeasonProgressDefault = 1;
+export const importWatchlistBodyEpisodeProgressDefault = 0;
+
+export const ImportWatchlistBodyItem = zod.object({
+  "title": zod.string().min(1),
+  "type": zod.enum(['movie', 'series']),
+  "genre": zod.string().optional(),
+  "year": zod.number().optional(),
+  "posterUrl": zod.string().optional(),
+  "description": zod.string().optional(),
+  "status": zod.enum(['want_to_watch', 'watching', 'watched']).default(importWatchlistBodyStatusDefault),
+  "rating": zod.number().min(1).max(importWatchlistBodyRatingMax).optional(),
+  "notes": zod.string().optional(),
+  "tmdbId": zod.number().optional(),
+  "seasonProgress": zod.number().default(importWatchlistBodySeasonProgressDefault),
+  "episodeProgress": zod.number().default(importWatchlistBodyEpisodeProgressDefault),
+  "totalSeasons": zod.number().optional(),
+  "totalEpisodes": zod.number().optional()
+})
+export const ImportWatchlistBody = zod.array(ImportWatchlistBodyItem)
+
+export const ImportWatchlistResponse = zod.object({
+  "imported": zod.number(),
+  "skipped": zod.number(),
+  "total": zod.number()
+})
 
 
 /**
@@ -218,5 +422,34 @@ export const SearchTmdbResponseItem = zod.object({
   "genre": zod.string().nullable()
 })
 export const SearchTmdbResponse = zod.array(SearchTmdbResponseItem)
+
+
+/**
+ * @summary Get watch providers (streaming, rent, buy) from TMDB
+ */
+export const GetWatchProvidersParams = zod.object({
+  "type": zod.enum(['movie', 'series']),
+  "id": zod.coerce.number()
+})
+
+export const GetWatchProvidersResponse = zod.object({
+  "tmdbId": zod.number(),
+  "link": zod.string().nullish(),
+  "streaming": zod.array(zod.object({
+  "providerId": zod.number().optional(),
+  "name": zod.string(),
+  "logoUrl": zod.string().nullish()
+})).optional(),
+  "rent": zod.array(zod.object({
+  "providerId": zod.number().optional(),
+  "name": zod.string(),
+  "logoUrl": zod.string().nullish()
+})).optional(),
+  "buy": zod.array(zod.object({
+  "providerId": zod.number().optional(),
+  "name": zod.string(),
+  "logoUrl": zod.string().nullish()
+})).optional()
+})
 
 

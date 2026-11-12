@@ -9,6 +9,32 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface RegisterInput {
+  /** @minLength 3 */
+  username: string;
+  email: string;
+  /** @minLength 6 */
+  password: string;
+}
+
+export interface LoginInput {
+  /** @minLength 1 */
+  usernameOrEmail: string;
+  /** @minLength 1 */
+  password: string;
+}
+
+export interface UserInfo {
+  id: number;
+  username: string;
+  email: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: UserInfo;
+}
+
 export type WatchlistItemType = typeof WatchlistItemType[keyof typeof WatchlistItemType];
 
 
@@ -28,6 +54,10 @@ export const WatchlistItemStatus = {
 
 export interface WatchlistItem {
   id: number;
+  /** @nullable */
+  userId?: number | null;
+  /** @nullable */
+  tmdbId?: number | null;
   title: string;
   type: WatchlistItemType;
   /** @nullable */
@@ -47,8 +77,22 @@ export interface WatchlistItem {
   rating?: number | null;
   /** @nullable */
   notes?: string | null;
+  seasonProgress: number;
+  episodeProgress: number;
+  /** @nullable */
+  totalSeasons?: number | null;
+  /** @nullable */
+  totalEpisodes?: number | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface PaginatedWatchlistItems {
+  items: WatchlistItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
 export type WatchlistItemInputType = typeof WatchlistItemInputType[keyof typeof WatchlistItemInputType];
@@ -83,6 +127,11 @@ export interface WatchlistItemInput {
      */
   rating?: number;
   notes?: string;
+  tmdbId?: number;
+  seasonProgress?: number;
+  episodeProgress?: number;
+  totalSeasons?: number;
+  totalEpisodes?: number;
 }
 
 export type WatchlistItemUpdateType = typeof WatchlistItemUpdateType[keyof typeof WatchlistItemUpdateType];
@@ -117,6 +166,11 @@ export interface WatchlistItemUpdate {
      */
   rating?: number;
   notes?: string;
+  tmdbId?: number;
+  seasonProgress?: number;
+  episodeProgress?: number;
+  totalSeasons?: number;
+  totalEpisodes?: number;
 }
 
 export type WatchlistStatsByStatus = {
@@ -160,10 +214,41 @@ export interface TmdbSearchResult {
   genre: string | null;
 }
 
+export interface WatchProvider {
+  providerId?: number;
+  name: string;
+  /** @nullable */
+  logoUrl?: string | null;
+}
+
+export interface WatchProvidersResponse {
+  tmdbId: number;
+  /** @nullable */
+  link?: string | null;
+  streaming?: WatchProvider[];
+  rent?: WatchProvider[];
+  buy?: WatchProvider[];
+}
+
+export interface ImportResponse {
+  imported: number;
+  skipped: number;
+  total: number;
+}
+
+export type Logout200 = {
+  success: boolean;
+};
+
 export type ListItemsParams = {
 status?: ListItemsStatus;
 type?: ListItemsType;
 genre?: string;
+search?: string;
+sortBy?: ListItemsSortBy;
+sortOrder?: ListItemsSortOrder;
+page?: number;
+pageSize?: number;
 };
 
 export type ListItemsStatus = typeof ListItemsStatus[keyof typeof ListItemsStatus];
@@ -181,6 +266,25 @@ export type ListItemsType = typeof ListItemsType[keyof typeof ListItemsType];
 export const ListItemsType = {
   movie: 'movie',
   series: 'series',
+} as const;
+
+export type ListItemsSortBy = typeof ListItemsSortBy[keyof typeof ListItemsSortBy];
+
+
+export const ListItemsSortBy = {
+  updatedAt: 'updatedAt',
+  createdAt: 'createdAt',
+  title: 'title',
+  year: 'year',
+  rating: 'rating',
+} as const;
+
+export type ListItemsSortOrder = typeof ListItemsSortOrder[keyof typeof ListItemsSortOrder];
+
+
+export const ListItemsSortOrder = {
+  asc: 'asc',
+  desc: 'desc',
 } as const;
 
 export type GetRecentItemsParams = {

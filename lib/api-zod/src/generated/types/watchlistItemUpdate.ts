@@ -23,4 +23,9 @@ export interface WatchlistItemUpdate {
      */
   rating?: number;
   notes?: string;
+  tmdbId?: number;
+  seasonProgress?: number;
+  episodeProgress?: number;
+  totalSeasons?: number;
+  totalEpisodes?: number;
 }

@@ -5,6 +5,8 @@
  * Watchlist API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ListItemsSortBy } from './listItemsSortBy';
+import type { ListItemsSortOrder } from './listItemsSortOrder';
 import type { ListItemsStatus } from './listItemsStatus';
 import type { ListItemsType } from './listItemsType';
 
@@ -12,4 +14,9 @@ export type ListItemsParams = {
 status?: ListItemsStatus;
 type?: ListItemsType;
 genre?: string;
+search?: string;
+sortBy?: ListItemsSortBy;
+sortOrder?: ListItemsSortOrder;
+page?: number;
+pageSize?: number;
 };

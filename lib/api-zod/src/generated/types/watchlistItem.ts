@@ -10,6 +10,10 @@ import type { WatchlistItemType } from './watchlistItemType';
 
 export interface WatchlistItem {
   id: number;
+  /** @nullable */
+  userId?: number | null;
+  /** @nullable */
+  tmdbId?: number | null;
   title: string;
   type: WatchlistItemType;
   /** @nullable */
@@ -29,6 +33,12 @@ export interface WatchlistItem {
   rating?: number | null;
   /** @nullable */
   notes?: string | null;
+  seasonProgress: number;
+  episodeProgress: number;
+  /** @nullable */
+  totalSeasons?: number | null;
+  /** @nullable */
+  totalEpisodes?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

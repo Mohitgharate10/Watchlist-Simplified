@@ -4,19 +4,21 @@ import * as schema from "./schema";
 
 const { Pool } = pg;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error(
-    "DATABASE_URL must be set. Did you forget to provision a database?",
-  );
+if (!process.env.DATABASE_URL && process.env.NODE_ENV === "production") {
+  throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
 }
 
+const connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/watchlist";
 const isProduction = process.env.NODE_ENV === "production";
+
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: isProduction && !process.env.DATABASE_URL.includes("localhost")
-    ? { rejectUnauthorized: false }
-    : undefined,
+  connectionString,
+  ssl:
+    isProduction && !connectionString.includes("localhost")
+      ? { rejectUnauthorized: false }
+      : undefined,
 });
+
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";

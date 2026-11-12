@@ -57,6 +57,7 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [tmdbQuery, setTmdbQuery] = useState("");
   const [selectedItemTitle, setSelectedItemTitle] = useState<string | null>(null);
+  const [selectedTmdbId, setSelectedTmdbId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -97,6 +98,7 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
       description: result.description ?? "",
     });
     setSelectedItemTitle(result.title);
+    setSelectedTmdbId(result.id);
     setTmdbQuery("");
   }
 
@@ -111,6 +113,9 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
           year: values.year ? Number(values.year) : undefined,
           genre: values.genre || undefined,
           description: values.description || undefined,
+          tmdbId: selectedTmdbId || undefined,
+          seasonProgress: values.type === "series" ? 1 : 0,
+          episodeProgress: 0,
         },
       },
       {
@@ -125,12 +130,16 @@ export function AddItemDialog({ children }: { children: React.ReactNode }) {
           setOpen(false);
           setTmdbQuery("");
           setSelectedItemTitle(null);
+          setSelectedTmdbId(null);
           form.reset();
         },
-        onError: () => {
+        onError: (err: any) => {
+          const isDuplicate = err?.status === 409 || err?.message?.includes("already in your watchlist");
           toast({
-            title: "Failed to add item",
-            description: "An unexpected error occurred.",
+            title: isDuplicate ? "Already in watchlist" : "Failed to add item",
+            description: isDuplicate
+              ? "This title is already part of your watchlist collection."
+              : err?.message || "An unexpected error occurred.",
             variant: "destructive",
           });
         },

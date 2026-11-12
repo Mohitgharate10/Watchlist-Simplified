@@ -1,7 +1,7 @@
 import { WatchlistItem, useUpdateItem, getListItemsQueryKey, getGetRecentItemsQueryKey, getGetStatsQueryKey } from "@workspace/api-client-react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
-import { Star, Film, Tv, MoreVertical } from "lucide-react";
+import { Star, Film, Tv, MoreVertical, Plus } from "lucide-react";
 import { StatusBadge } from "./status-badge";
 import {
   DropdownMenu,
@@ -26,7 +26,7 @@ export function ItemCard({ item, compact = false }: ItemCardProps) {
   const handleStatusChange = (e: React.MouseEvent, status: "want_to_watch" | "watching" | "watched") => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     updateItem.mutate(
       { id: item.id, data: { status } },
       {
@@ -34,7 +34,29 @@ export function ItemCard({ item, compact = false }: ItemCardProps) {
           queryClient.invalidateQueries({ queryKey: getListItemsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetRecentItemsQueryKey({ limit: 6 }) });
           queryClient.invalidateQueries({ queryKey: getGetStatsQueryKey() });
-        }
+        },
+      }
+    );
+  };
+
+  const handleIncrementEpisode = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const nextEp = (item.episodeProgress ?? 0) + 1;
+    updateItem.mutate(
+      {
+        id: item.id,
+        data: {
+          episodeProgress: nextEp,
+          status: item.status === "want_to_watch" ? "watching" : item.status,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListItemsQueryKey() });
+          queryClient.invalidateQueries({ queryKey: getGetRecentItemsQueryKey({ limit: 6 }) });
+        },
       }
     );
   };
@@ -67,9 +89,9 @@ export function ItemCard({ item, compact = false }: ItemCardProps) {
 
         <div className="aspect-[2/3] w-full relative bg-muted overflow-hidden">
           {item.posterUrl ? (
-            <img 
-              src={item.posterUrl} 
-              alt={`Poster for ${item.title}`} 
+            <img
+              src={item.posterUrl}
+              alt={`Poster for ${item.title}`}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
@@ -78,36 +100,56 @@ export function ItemCard({ item, compact = false }: ItemCardProps) {
               <span className="font-serif text-sm px-4 text-center">{item.title}</span>
             </div>
           )}
-          
-          <div className="absolute top-2 left-2 z-10">
+
+          <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5 items-start">
             <StatusBadge status={item.status} className="shadow-lg backdrop-blur-md bg-background/80" />
+            {item.type === "series" && (
+              <span className="rounded-md bg-background/90 backdrop-blur-md px-1.5 py-0.5 text-[10px] font-semibold tracking-wider text-primary border border-border/40 shadow-sm">
+                S{item.seasonProgress || 1} · Ep {item.episodeProgress ?? 0}
+              </span>
+            )}
           </div>
 
           <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
 
-        <CardContent className={`p-4 ${compact ? 'hidden' : ''}`}>
+        <CardContent className={`p-4 ${compact ? "hidden" : ""}`}>
           <div className="mb-2 flex min-w-0 items-start justify-between gap-2">
             <h3 className="min-w-0 flex-1 font-serif text-base leading-tight line-clamp-2 text-foreground transition-colors group-hover:text-primary sm:text-lg">
               {item.title}
             </h3>
             {item.rating && (
-                <div className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary sm:px-2 sm:text-xs">
+              <div className="flex shrink-0 items-center gap-1 rounded-full bg-primary/10 px-1.5 py-0.5 text-[11px] font-medium text-primary sm:px-2 sm:text-xs">
                 <Star className="w-3 h-3 fill-current" />
                 {item.rating}
               </div>
             )}
           </div>
-          
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-            <span className="capitalize">{item.type}</span>
-            {(item.year || item.genre) && <span className="w-1 h-1 rounded-full bg-border" />}
-            {item.year && <span>{item.year}</span>}
-            {item.genre && (
-              <>
-                <span className="w-1 h-1 rounded-full bg-border" />
-                <span className="truncate">{item.genre}</span>
-              </>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5 truncate text-xs sm:text-sm">
+              <span className="capitalize">{item.type}</span>
+              {(item.year || item.genre) && <span className="w-1 h-1 rounded-full bg-border" />}
+              {item.year && <span>{item.year}</span>}
+              {item.genre && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-border" />
+                  <span className="truncate max-w-[120px]">{item.genre}</span>
+                </>
+              )}
+            </div>
+
+            {item.type === "series" && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-1.5 text-[11px] font-medium text-primary hover:text-primary hover:bg-primary/10 rounded"
+                onClick={handleIncrementEpisode}
+                title="Increment episode watched"
+              >
+                <Plus className="w-3 h-3 mr-0.5" />
+                Ep
+              </Button>
             )}
           </div>
         </CardContent>

@@ -1,11 +1,15 @@
 import { ReactNode } from "react";
 import { Link, useLocation } from "wouter";
-import { Film, LayoutDashboard, ListVideo, Plus } from "lucide-react";
+import { Film, LayoutDashboard, ListVideo, Plus, LogOut, User as UserIcon, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddItemDialog } from "./add-item-dialog";
+import { AuthDialog } from "./auth-dialog";
+import { ImportExportDialog } from "./import-export-dialog";
+import { useAuth } from "@/lib/auth-context";
 
 export function Layout({ children }: { children: ReactNode }) {
   const [location] = useLocation();
+  const { user, logout } = useAuth();
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -23,8 +27,21 @@ export function Layout({ children }: { children: ReactNode }) {
             <h1 className="font-serif text-xl tracking-wide text-foreground sm:text-2xl">Watchlist</h1>
           </div>
 
-          {/* Quick Add shortcut in mobile top bar */}
-          <div className="md:hidden">
+          {/* Quick Add and Auth for mobile header */}
+          <div className="flex items-center gap-2 md:hidden">
+            {user ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground"
+                onClick={() => logout()}
+                title="Log out"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            ) : (
+              <AuthDialog trigger={<Button size="sm" variant="outline" className="h-8 text-xs">Sign In</Button>} />
+            )}
             <AddItemDialog>
               <Button size="sm" className="h-8 px-3 text-xs gap-1.5 rounded-full font-medium shadow-sm">
                 <Plus className="w-3.5 h-3.5" />
@@ -53,12 +70,56 @@ export function Layout({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
+
+          <div className="hidden md:block pt-2">
+            <ImportExportDialog
+              trigger={
+                <Button variant="ghost" className="h-10 w-full justify-start gap-3 px-4 text-sm text-muted-foreground hover:text-foreground">
+                  <Download className="w-4 h-4" />
+                  Import / Export
+                </Button>
+              }
+            />
+          </div>
         </nav>
 
-        <div className="p-4 hidden md:block">
+        {/* User Account & Actions section in sidebar */}
+        <div className="p-4 hidden md:flex flex-col gap-3 border-t border-border/50">
+          {user ? (
+            <div className="flex items-center justify-between rounded-lg bg-card/60 p-2.5 border border-border/40">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                  {user.username.slice(0, 1).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium truncate text-foreground">{user.username}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
+                onClick={() => logout()}
+                title="Log out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          ) : (
+            <AuthDialog
+              trigger={
+                <Button variant="outline" className="w-full gap-2 text-sm h-10 border-dashed">
+                  <UserIcon className="w-4 h-4" />
+                  Sign In / Register
+                </Button>
+              }
+            />
+          )}
+
           <AddItemDialog>
-            <Button className="w-full gap-2 shadow-primary/20 shadow-lg h-12 text-base hover:shadow-primary/30 transition-all" data-testid="button-quick-add">
-              <Plus className="w-5 h-5" />
+            <Button className="w-full gap-2 shadow-primary/20 shadow-lg h-11 text-sm font-medium hover:shadow-primary/30 transition-all" data-testid="button-quick-add">
+              <Plus className="w-4 h-4" />
               Quick Add
             </Button>
           </AddItemDialog>
@@ -69,7 +130,7 @@ export function Layout({ children }: { children: ReactNode }) {
         {children}
       </main>
 
-      {/* Mobile Floating Action Button (Positioned Bottom-Left to never overlap bottom-right chatbot) */}
+      {/* Mobile Floating Action Button */}
       <div className="fixed bottom-6 left-5 z-40 md:hidden">
         <AddItemDialog>
           <Button

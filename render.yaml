@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: watchlist-simplified
+  - name: watchlist-simplified
     runtime: node
     plan: free
     buildCommand: pnpm install --frozen-lockfile && pnpm run build
-    startCommand: pnpm run db:push; pnpm run start
+    startCommand: pnpm run db:migrate; pnpm run start
     envVars:
       - key: DATABASE_URL
         fromDatabase:

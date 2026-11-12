@@ -20,11 +20,19 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  AuthResponse,
   GetRecentItemsParams,
   HealthStatus,
+  ImportResponse,
   ListItemsParams,
+  LoginInput,
+  Logout200,
+  PaginatedWatchlistItems,
+  RegisterInput,
   SearchTmdbParams,
   TmdbSearchResult,
+  UserInfo,
+  WatchProvidersResponse,
   WatchlistItem,
   WatchlistItemInput,
   WatchlistItemUpdate,
@@ -121,6 +129,295 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
 
 
 
+export const getRegisterUrl = () => {
+
+
+
+
+  return `/api/auth/register`
+}
+
+/**
+ * @summary Register a new user
+ */
+export const register = async (registerInput: RegisterInput, options?: RequestInit): Promise<AuthResponse> => {
+
+  return customFetch<AuthResponse>(getRegisterUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      registerInput,)
+  }
+);}
+
+
+
+
+export const getRegisterMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: BodyType<RegisterInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: BodyType<RegisterInput>}, TContext> => {
+
+const mutationKey = ['register'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof register>>, {data: BodyType<RegisterInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  register(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>
+    export type RegisterMutationBody = BodyType<RegisterInput>
+    export type RegisterMutationError = ErrorType<void>
+
+    /**
+ * @summary Register a new user
+ */
+export const useRegister = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof register>>, TError,{data: BodyType<RegisterInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof register>>,
+        TError,
+        {data: BodyType<RegisterInput>},
+        TContext
+      > => {
+      return useMutation(getRegisterMutationOptions(options));
+    }
+
+export const getLoginUrl = () => {
+
+
+
+
+  return `/api/auth/login`
+}
+
+/**
+ * @summary Log in with username or email
+ */
+export const login = async (loginInput: LoginInput, options?: RequestInit): Promise<AuthResponse> => {
+
+  return customFetch<AuthResponse>(getLoginUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      loginInput,)
+  }
+);}
+
+
+
+
+export const getLoginMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginInput>}, TContext> => {
+
+const mutationKey = ['login'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, {data: BodyType<LoginInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  login(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>
+    export type LoginMutationBody = BodyType<LoginInput>
+    export type LoginMutationError = ErrorType<void>
+
+    /**
+ * @summary Log in with username or email
+ */
+export const useLogin = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof login>>, TError,{data: BodyType<LoginInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof login>>,
+        TError,
+        {data: BodyType<LoginInput>},
+        TContext
+      > => {
+      return useMutation(getLoginMutationOptions(options));
+    }
+
+export const getGetCurrentUserUrl = () => {
+
+
+
+
+  return `/api/auth/me`
+}
+
+/**
+ * @summary Get the currently authenticated user
+ */
+export const getCurrentUser = async ( options?: RequestInit): Promise<UserInfo> => {
+
+  return customFetch<UserInfo>(getGetCurrentUserUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCurrentUserQueryKey = () => {
+    return [
+    `/api/auth/me`
+    ] as const;
+    }
+
+
+export const getGetCurrentUserQueryOptions = <TData = Awaited<ReturnType<typeof getCurrentUser>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCurrentUserQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCurrentUser>>> = ({ signal }) => getCurrentUser({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCurrentUserQueryResult = NonNullable<Awaited<ReturnType<typeof getCurrentUser>>>
+export type GetCurrentUserQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the currently authenticated user
+ */
+
+export function useGetCurrentUser<TData = Awaited<ReturnType<typeof getCurrentUser>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCurrentUser>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCurrentUserQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getLogoutUrl = () => {
+
+
+
+
+  return `/api/auth/logout`
+}
+
+/**
+ * @summary Log out current user
+ */
+export const logout = async ( options?: RequestInit): Promise<Logout200> => {
+
+  return customFetch<Logout200>(getLogoutUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getLogoutMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext> => {
+
+const mutationKey = ['logout'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
+
+
+          return  logout(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>
+
+    export type LogoutMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Log out current user
+ */
+export const useLogout = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof logout>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getLogoutMutationOptions(options));
+    }
+
 export const getListItemsUrl = (params?: ListItemsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -137,11 +434,11 @@ export const getListItemsUrl = (params?: ListItemsParams,) => {
 }
 
 /**
- * @summary List all watchlist items
+ * @summary List watchlist items with search, filter, sort and pagination
  */
-export const listItems = async (params?: ListItemsParams, options?: RequestInit): Promise<WatchlistItem[]> => {
+export const listItems = async (params?: ListItemsParams, options?: RequestInit): Promise<PaginatedWatchlistItems> => {
 
-  return customFetch<WatchlistItem[]>(getListItemsUrl(params),
+  return customFetch<PaginatedWatchlistItems>(getListItemsUrl(params),
   {
     ...options,
     method: 'GET'
@@ -184,7 +481,7 @@ export type ListItemsQueryError = ErrorType<unknown>
 
 
 /**
- * @summary List all watchlist items
+ * @summary List watchlist items with search, filter, sort and pagination
  */
 
 export function useListItems<TData = Awaited<ReturnType<typeof listItems>>, TError = ErrorType<unknown>>(
@@ -231,7 +528,7 @@ export const createItem = async (watchlistItemInput: WatchlistItemInput, options
 
 
 
-export const getCreateItemMutationOptions = <TError = ErrorType<unknown>,
+export const getCreateItemMutationOptions = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createItem>>, TError,{data: BodyType<WatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createItem>>, TError,{data: BodyType<WatchlistItemInput>}, TContext> => {
 
@@ -260,12 +557,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateItemMutationResult = NonNullable<Awaited<ReturnType<typeof createItem>>>
     export type CreateItemMutationBody = BodyType<WatchlistItemInput>
-    export type CreateItemMutationError = ErrorType<unknown>
+    export type CreateItemMutationError = ErrorType<void>
 
     /**
  * @summary Add item to watchlist
  */
-export const useCreateItem = <TError = ErrorType<unknown>,
+export const useCreateItem = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createItem>>, TError,{data: BodyType<WatchlistItemInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof createItem>>,
@@ -450,7 +747,7 @@ export const deleteItem = async (id: number, options?: RequestInit): Promise<voi
 
 
 
-export const getDeleteItemMutationOptions = <TError = ErrorType<unknown>,
+export const getDeleteItemMutationOptions = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{id: number}, TContext> => {
 
@@ -479,12 +776,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteItemMutationResult = NonNullable<Awaited<ReturnType<typeof deleteItem>>>
 
-    export type DeleteItemMutationError = ErrorType<unknown>
+    export type DeleteItemMutationError = ErrorType<void>
 
     /**
  * @summary Remove item from watchlist
  */
-export const useDeleteItem = <TError = ErrorType<unknown>,
+export const useDeleteItem = <TError = ErrorType<void>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItem>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof deleteItem>>,
@@ -493,6 +790,76 @@ export const useDeleteItem = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getDeleteItemMutationOptions(options));
+    }
+
+export const getRefreshItemFromTmdbUrl = (id: number,) => {
+
+
+
+
+  return `/api/items/${id}/refresh`
+}
+
+/**
+ * @summary Refresh item details from TMDB
+ */
+export const refreshItemFromTmdb = async (id: number, options?: RequestInit): Promise<WatchlistItem> => {
+
+  return customFetch<WatchlistItem>(getRefreshItemFromTmdbUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRefreshItemFromTmdbMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshItemFromTmdb>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof refreshItemFromTmdb>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['refreshItemFromTmdb'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshItemFromTmdb>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  refreshItemFromTmdb(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RefreshItemFromTmdbMutationResult = NonNullable<Awaited<ReturnType<typeof refreshItemFromTmdb>>>
+
+    export type RefreshItemFromTmdbMutationError = ErrorType<void>
+
+    /**
+ * @summary Refresh item details from TMDB
+ */
+export const useRefreshItemFromTmdb = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof refreshItemFromTmdb>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof refreshItemFromTmdb>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getRefreshItemFromTmdbMutationOptions(options));
     }
 
 export const getGetStatsUrl = () => {
@@ -656,6 +1023,154 @@ export function useGetRecentItems<TData = Awaited<ReturnType<typeof getRecentIte
 
 
 
+export const getExportWatchlistUrl = () => {
+
+
+
+
+  return `/api/watchlist/export`
+}
+
+/**
+ * @summary Export all watchlist items for the authenticated user
+ */
+export const exportWatchlist = async ( options?: RequestInit): Promise<WatchlistItem[]> => {
+
+  return customFetch<WatchlistItem[]>(getExportWatchlistUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getExportWatchlistQueryKey = () => {
+    return [
+    `/api/watchlist/export`
+    ] as const;
+    }
+
+
+export const getExportWatchlistQueryOptions = <TData = Awaited<ReturnType<typeof exportWatchlist>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getExportWatchlistQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportWatchlist>>> = ({ signal }) => exportWatchlist({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportWatchlist>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ExportWatchlistQueryResult = NonNullable<Awaited<ReturnType<typeof exportWatchlist>>>
+export type ExportWatchlistQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Export all watchlist items for the authenticated user
+ */
+
+export function useExportWatchlist<TData = Awaited<ReturnType<typeof exportWatchlist>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportWatchlist>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getExportWatchlistQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getImportWatchlistUrl = () => {
+
+
+
+
+  return `/api/watchlist/import`
+}
+
+/**
+ * @summary Import watchlist items
+ */
+export const importWatchlist = async (watchlistItemInput: WatchlistItemInput[], options?: RequestInit): Promise<ImportResponse> => {
+
+  return customFetch<ImportResponse>(getImportWatchlistUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      watchlistItemInput,)
+  }
+);}
+
+
+
+
+export const getImportWatchlistMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importWatchlist>>, TError,{data: BodyType<WatchlistItemInput[]>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof importWatchlist>>, TError,{data: BodyType<WatchlistItemInput[]>}, TContext> => {
+
+const mutationKey = ['importWatchlist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof importWatchlist>>, {data: BodyType<WatchlistItemInput[]>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  importWatchlist(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ImportWatchlistMutationResult = NonNullable<Awaited<ReturnType<typeof importWatchlist>>>
+    export type ImportWatchlistMutationBody = BodyType<WatchlistItemInput[]>
+    export type ImportWatchlistMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Import watchlist items
+ */
+export const useImportWatchlist = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof importWatchlist>>, TError,{data: BodyType<WatchlistItemInput[]>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof importWatchlist>>,
+        TError,
+        {data: BodyType<WatchlistItemInput[]>},
+        TContext
+      > => {
+      return useMutation(getImportWatchlistMutationOptions(options));
+    }
+
 export const getSearchTmdbUrl = (params: SearchTmdbParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -728,6 +1243,88 @@ export function useSearchTmdb<TData = Awaited<ReturnType<typeof searchTmdb>>, TE
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getSearchTmdbQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetWatchProvidersUrl = (type: 'movie' | 'series',
+    id: number,) => {
+
+
+
+
+  return `/api/tmdb/providers/${type}/${id}`
+}
+
+/**
+ * @summary Get watch providers (streaming, rent, buy) from TMDB
+ */
+export const getWatchProviders = async (type: 'movie' | 'series',
+    id: number, options?: RequestInit): Promise<WatchProvidersResponse> => {
+
+  return customFetch<WatchProvidersResponse>(getGetWatchProvidersUrl(type,id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetWatchProvidersQueryKey = (type: 'movie' | 'series',
+    id: number,) => {
+    return [
+    `/api/tmdb/providers/${type}/${id}`
+    ] as const;
+    }
+
+
+export const getGetWatchProvidersQueryOptions = <TData = Awaited<ReturnType<typeof getWatchProviders>>, TError = ErrorType<void>>(type: 'movie' | 'series',
+    id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchProviders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetWatchProvidersQueryKey(type,id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getWatchProviders>>> = ({ signal }) => getWatchProviders(type,id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(type && id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getWatchProviders>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetWatchProvidersQueryResult = NonNullable<Awaited<ReturnType<typeof getWatchProviders>>>
+export type GetWatchProvidersQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get watch providers (streaming, rent, buy) from TMDB
+ */
+
+export function useGetWatchProviders<TData = Awaited<ReturnType<typeof getWatchProviders>>, TError = ErrorType<void>>(
+ type: 'movie' | 'series',
+    id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getWatchProviders>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetWatchProvidersQueryOptions(type,id,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

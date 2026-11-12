@@ -6,15 +6,24 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from './authResponse';
 export * from './getRecentItemsParams';
 export * from './healthStatus';
+export * from './importResponse';
 export * from './listItemsParams';
+export * from './listItemsSortBy';
+export * from './listItemsSortOrder';
 export * from './listItemsStatus';
 export * from './listItemsType';
+export * from './loginInput';
+export * from './logout200';
+export * from './paginatedWatchlistItems';
+export * from './registerInput';
 export * from './searchTmdbParams';
 export * from './searchTmdbType';
 export * from './tmdbSearchResult';
 export * from './tmdbSearchResultType';
+export * from './userInfo';
 export * from './watchlistItem';
 export * from './watchlistItemInput';
 export * from './watchlistItemInputStatus';
@@ -27,3 +36,5 @@ export * from './watchlistItemUpdateType';
 export * from './watchlistStats';
 export * from './watchlistStatsByStatus';
 export * from './watchlistStatsByType';
+export * from './watchProvider';
+export * from './watchProvidersResponse';
