@@ -7,24 +7,25 @@ export interface UserTokenPayload {
   email: string;
 }
 
+let runtimeSecret: Uint8Array | null = null;
+
 function getJwtSecret(): Uint8Array {
   const secret = process.env.JWT_SECRET;
-  if (!secret) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error(
-        "FATAL: JWT_SECRET environment variable is missing. It must be set in production to prevent token forgery."
-      );
-    }
-    return new TextEncoder().encode("dev-insecure-fallback-secret-key-1234567890");
+  if (secret && secret.trim().length > 0) {
+    return new TextEncoder().encode(secret.trim());
   }
-  return new TextEncoder().encode(secret);
-}
 
-// Fail fast in production if JWT_SECRET is not configured
-if (process.env.NODE_ENV === "production" && !process.env.JWT_SECRET) {
-  throw new Error(
-    "FATAL: JWT_SECRET environment variable is missing. It must be set in production to prevent token forgery."
-  );
+  if (!runtimeSecret) {
+    // Generate a cryptographically secure 256-bit random key at runtime
+    // This allows the app to boot cleanly without crashing even if JWT_SECRET was not added to Render's dashboard yet,
+    // while guaranteeing tokens cannot be forged or guessed by an attacker.
+    const randomHex = crypto.randomBytes(32).toString("hex");
+    runtimeSecret = new TextEncoder().encode(randomHex);
+    console.warn(
+      "[auth] NOTICE: JWT_SECRET environment variable is not configured. Generated a cryptographically secure runtime key. User sessions will expire on restart. Set JWT_SECRET in your Render dashboard environment variables to persist sessions across deploys."
+    );
+  }
+  return runtimeSecret;
 }
 
 export function hashPassword(password: string): Promise<string> {
