@@ -283,19 +283,19 @@ export function ItemDetail() {
 
           {/* Series Progress Card */}
           {item.type === "series" && (
-            <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-3">
+            <div className="rounded-xl border border-white/[0.08] bg-[#050505] p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold flex items-center gap-1.5 text-foreground">
-                  <Tv2 className="w-4 h-4 text-primary" /> Episode Progress
+                <span className="text-xs font-mono uppercase tracking-wider flex items-center gap-1.5 text-white">
+                  <Tv2 className="w-3.5 h-3.5 text-white" /> Episode Progress
                 </span>
-                <span className="text-xs font-mono text-primary font-bold">
+                <span className="text-xs font-mono text-white font-bold">
                   S{item.seasonProgress || 1} : E{item.episodeProgress ?? 0}
                 </span>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-[11px] text-muted-foreground">Season</label>
+                  <label className="text-[10px] font-mono uppercase tracking-wider text-neutral-500">Season</label>
                   <div className="flex items-center gap-1">
                     <Input
                       type="number"
@@ -304,18 +304,18 @@ export function ItemDetail() {
                       onChange={(e) =>
                         handleProgressChange(Number(e.target.value), item.episodeProgress ?? 0)
                       }
-                      className="h-8 text-center bg-background"
+                      className="h-8 text-center bg-[#0a0a0a] border-white/10 text-white font-mono"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[11px] text-muted-foreground">Episode</label>
+                  <label className="text-[10px] font-mono uppercase tracking-wider text-neutral-500">Episode</label>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0"
+                      className="h-8 w-8 shrink-0 bg-neutral-900 border-white/10 text-neutral-300 hover:text-white"
                       onClick={() =>
                         handleProgressChange(item.seasonProgress || 1, (item.episodeProgress ?? 0) - 1)
                       }
@@ -330,12 +330,12 @@ export function ItemDetail() {
                       onChange={(e) =>
                         handleProgressChange(item.seasonProgress || 1, Number(e.target.value))
                       }
-                      className="h-8 text-center bg-background"
+                      className="h-8 text-center bg-[#0a0a0a] border-white/10 text-white font-mono"
                     />
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 shrink-0"
+                      className="h-8 w-8 shrink-0 bg-neutral-900 border-white/10 text-neutral-300 hover:text-white"
                       onClick={() =>
                         handleProgressChange(item.seasonProgress || 1, (item.episodeProgress ?? 0) + 1)
                       }
@@ -350,19 +350,19 @@ export function ItemDetail() {
 
           {/* Where to Watch Section */}
           {item.tmdbId && (
-            <div className="rounded-lg border border-border/60 bg-card/40 p-4 space-y-3">
+            <div className="rounded-xl border border-white/[0.08] bg-[#050505] p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                  <Tv className="w-4 h-4 text-primary" /> Where to Watch
+                <h4 className="text-xs font-mono uppercase tracking-wider text-white flex items-center gap-1.5 font-medium">
+                  <Tv className="w-3.5 h-3.5 text-white" /> Where to Watch
                 </h4>
                 {watchProviders?.link && (
                   <a
                     href={watchProviders.link}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[11px] text-primary hover:underline flex items-center gap-0.5"
+                    className="text-[10px] font-mono text-neutral-400 hover:text-white flex items-center gap-0.5"
                   >
-                    TMDB <ExternalLink className="w-3 h-3" />
+                    TMDB <ExternalLink className="w-2.5 h-2.5" />
                   </a>
                 )}
               </div>
@@ -440,7 +440,7 @@ export function ItemDetail() {
         <div className="min-w-0 flex-1 space-y-6 sm:space-y-8">
           <div>
             <div className="mb-4 flex items-start justify-between gap-3 sm:gap-4">
-              <h1 className="min-w-0 flex-1 font-serif text-3xl leading-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
+              <h1 className="min-w-0 flex-1 font-bold text-3xl leading-tight text-white sm:text-4xl md:text-5xl tracking-tight">
                 {item.title}
               </h1>
 
@@ -506,20 +506,20 @@ export function ItemDetail() {
           <div className="space-y-8">
             {item.description && (
               <section>
-                <h3 className="text-xl font-serif mb-3 flex items-center gap-2">
-                  <Edit2 className="w-5 h-5 text-muted-foreground" />
+                <h3 className="text-sm font-semibold text-white mb-2 flex items-center gap-2">
+                  <Edit2 className="w-3.5 h-3.5 text-neutral-400" />
                   Synopsis
                 </h3>
-                <p className="rounded-lg border border-border/40 bg-card/20 p-4 text-base leading-relaxed text-muted-foreground sm:p-6 sm:text-lg">
+                <p className="rounded-xl border border-white/[0.08] bg-[#050505] p-4 text-sm leading-relaxed text-neutral-300 sm:p-5 font-light">
                   {item.description}
                 </p>
               </section>
             )}
 
             <section>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xl font-serif">Journal Notes</h3>
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-semibold text-white">Journal Notes</h3>
+                <span className="text-xs font-mono text-neutral-500 flex items-center gap-1">
                   <Clock className="w-3 h-3" />
                   {debouncedNotes !== notes ? "Saving..." : "Saved"}
                 </span>
@@ -528,11 +528,11 @@ export function ItemDetail() {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Write your thoughts, reviews, or favorite quotes..."
-                className="min-h-[220px] resize-y bg-card/30 border-border/50 p-4 text-base leading-relaxed placeholder:text-muted-foreground/30 focus-visible:ring-primary/20 sm:min-h-[250px] sm:p-6"
+                className="min-h-[180px] resize-y bg-[#050505] border-white/10 p-4 text-sm leading-relaxed text-white placeholder:text-neutral-600 focus-visible:ring-1 focus-visible:ring-white/20 sm:min-h-[220px] rounded-xl font-light"
               />
             </section>
 
-            <div className="text-sm text-muted-foreground pt-8 border-t border-border/50">
+            <div className="text-xs font-mono text-neutral-500 pt-6 border-t border-white/[0.08]">
               Added on {format(new Date(item.createdAt), "MMMM d, yyyy")}
             </div>
           </div>

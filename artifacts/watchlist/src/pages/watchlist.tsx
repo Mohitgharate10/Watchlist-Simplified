@@ -94,11 +94,11 @@ export function WatchlistPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-white/[0.06]">
         <div className="space-y-1">
-          <h1 className="font-serif text-3xl text-foreground sm:text-4xl md:text-5xl">Collection</h1>
-          <p className="text-base text-muted-foreground sm:text-lg">
-            {total > 0 ? `${total} titles in your cinematic journal` : "Browse and manage your cinematic journal."}
+          <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Collection</h1>
+          <p className="text-xs text-neutral-500 font-mono">
+            {total > 0 ? `${total} titles in your personal archive` : "Manage and track your personal archive."}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -107,10 +107,10 @@ export function WatchlistPage() {
       </header>
 
       {/* Controls: Search, Sort & Filters */}
-      <div className="flex flex-col gap-3 rounded-lg border border-border/50 bg-card/30 p-3 sm:p-4">
+      <div className="flex flex-col gap-3 rounded-xl border border-white/[0.08] bg-[#050505] p-3 sm:p-4 shadow-sm">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="relative w-full shrink-0 md:w-80 lg:w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
             <Input
               placeholder="Search by title, genre, notes..."
               value={search}
@@ -118,12 +118,12 @@ export function WatchlistPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="pl-9 bg-background/50 border-border"
+              className="pl-9 bg-[#0a0a0a] border-white/10 text-xs text-white placeholder-neutral-500 rounded-lg focus-visible:ring-1 focus-visible:ring-white/30"
             />
           </div>
 
           <div className="flex items-center gap-2">
-            <ArrowUpDown className="w-4 h-4 text-muted-foreground shrink-0" />
+            <ArrowUpDown className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
             <Select
               value={sortKey}
               onValueChange={(val) => {
@@ -131,24 +131,24 @@ export function WatchlistPage() {
                 setPage(1);
               }}
             >
-              <SelectTrigger className="w-[180px] bg-background/50 text-xs sm:text-sm">
+              <SelectTrigger className="w-[180px] bg-[#0a0a0a] border-white/10 text-xs text-neutral-300 rounded-lg">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="updatedAt-desc">Recently Updated</SelectItem>
-                <SelectItem value="createdAt-desc">Recently Added</SelectItem>
-                <SelectItem value="title-asc">Title (A - Z)</SelectItem>
-                <SelectItem value="title-desc">Title (Z - A)</SelectItem>
-                <SelectItem value="rating-desc">Highest Rating</SelectItem>
-                <SelectItem value="year-desc">Release Year</SelectItem>
+              <SelectContent className="bg-[#0a0a0a] border border-white/15 text-neutral-300 text-xs">
+                <SelectItem value="updatedAt-desc" className="focus:bg-white/10 focus:text-white">Recently Updated</SelectItem>
+                <SelectItem value="createdAt-desc" className="focus:bg-white/10 focus:text-white">Recently Added</SelectItem>
+                <SelectItem value="title-asc" className="focus:bg-white/10 focus:text-white">Title (A - Z)</SelectItem>
+                <SelectItem value="title-desc" className="focus:bg-white/10 focus:text-white">Title (Z - A)</SelectItem>
+                <SelectItem value="rating-desc" className="focus:bg-white/10 focus:text-white">Highest Rating</SelectItem>
+                <SelectItem value="year-desc" className="focus:bg-white/10 focus:text-white">Release Year</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
-        <div className="flex w-full flex-col items-stretch gap-3 border-t border-border/30 pt-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex w-full flex-col items-stretch gap-3 border-t border-white/[0.06] pt-3 md:flex-row md:items-center md:justify-between">
           <div className="flex min-w-0 items-center gap-2">
-            <SlidersHorizontal className="w-4 h-4 text-muted-foreground shrink-0" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
             <ToggleGroup
               type="single"
               value={statusFilter}
@@ -160,10 +160,10 @@ export function WatchlistPage() {
               }}
               className="min-w-0 flex-1 justify-start overflow-x-auto pb-1"
             >
-              <ToggleGroupItem value="all" className="rounded-full text-xs">All</ToggleGroupItem>
-              <ToggleGroupItem value="want_to_watch" className="rounded-full text-xs whitespace-nowrap">Want to Watch</ToggleGroupItem>
-              <ToggleGroupItem value="watching" className="rounded-full text-xs">Watching</ToggleGroupItem>
-              <ToggleGroupItem value="watched" className="rounded-full text-xs">Watched</ToggleGroupItem>
+              <ToggleGroupItem value="all" className="rounded-lg text-xs px-2.5 py-1 text-neutral-400 data-[state=on]:bg-white data-[state=on]:text-black data-[state=on]:font-semibold">All</ToggleGroupItem>
+              <ToggleGroupItem value="want_to_watch" className="rounded-lg text-xs px-2.5 py-1 text-neutral-400 whitespace-nowrap data-[state=on]:bg-white data-[state=on]:text-black data-[state=on]:font-semibold">Plan to Watch</ToggleGroupItem>
+              <ToggleGroupItem value="watching" className="rounded-lg text-xs px-2.5 py-1 text-neutral-400 data-[state=on]:bg-white data-[state=on]:text-black data-[state=on]:font-semibold">Watching</ToggleGroupItem>
+              <ToggleGroupItem value="watched" className="rounded-lg text-xs px-2.5 py-1 text-neutral-400 data-[state=on]:bg-white data-[state=on]:text-black data-[state=on]:font-semibold">Watched</ToggleGroupItem>
             </ToggleGroup>
           </div>
 
@@ -178,9 +178,9 @@ export function WatchlistPage() {
             }}
             className="shrink-0 self-start md:self-auto"
           >
-            <ToggleGroupItem value="all" className="rounded-full text-xs">All Types</ToggleGroupItem>
-            <ToggleGroupItem value="movie" className="rounded-full text-xs">Movies</ToggleGroupItem>
-            <ToggleGroupItem value="series" className="rounded-full text-xs">Series</ToggleGroupItem>
+            <ToggleGroupItem value="all" className="rounded-lg text-xs px-2.5 py-1 text-neutral-400 data-[state=on]:bg-white data-[state=on]:text-black data-[state=on]:font-semibold">All Types</ToggleGroupItem>
+            <ToggleGroupItem value="movie" className="rounded-lg text-xs px-2.5 py-1 text-neutral-400 data-[state=on]:bg-white data-[state=on]:text-black data-[state=on]:font-semibold">Movies</ToggleGroupItem>
+            <ToggleGroupItem value="series" className="rounded-lg text-xs px-2.5 py-1 text-neutral-400 data-[state=on]:bg-white data-[state=on]:text-black data-[state=on]:font-semibold">Series</ToggleGroupItem>
           </ToggleGroup>
         </div>
       </div>
@@ -188,37 +188,37 @@ export function WatchlistPage() {
       {/* Grid of Items */}
       <div className="min-h-[50vh]">
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} className="space-y-3">
-                <Skeleton className="aspect-[2/3] w-full rounded-md" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-3 w-1/2" />
+              <div key={i} className="space-y-3 bg-[#050505] p-3 rounded-xl border border-white/[0.08]">
+                <Skeleton className="aspect-[2/3] w-full rounded-lg bg-neutral-900" />
+                <Skeleton className="h-4 w-3/4 bg-neutral-900" />
+                <Skeleton className="h-3 w-1/2 bg-neutral-900" />
               </div>
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 text-center text-muted-foreground">
-            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-6">
-              <Search className="w-8 h-8" />
+          <div className="flex flex-col items-center justify-center py-24 text-center text-neutral-500 bg-[#050505] border border-white/[0.08] rounded-2xl">
+            <div className="w-14 h-14 bg-neutral-900 border border-white/10 rounded-2xl flex items-center justify-center mb-4 text-neutral-400">
+              <Search className="w-6 h-6" />
             </div>
-            <h3 className="text-xl font-serif text-foreground mb-2">No items found</h3>
-            <p>Try adjusting your search query or status filter to find what you're looking for.</p>
+            <h3 className="text-base font-semibold text-white mb-1">No items found</h3>
+            <p className="text-xs text-neutral-500 max-w-sm">Try adjusting your search query or status filter to find what you're looking for.</p>
           </div>
         ) : (
           <motion.div
             layout
-            className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+            className="grid grid-cols-1 gap-4 min-[360px]:grid-cols-2 sm:gap-5 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
           >
             <AnimatePresence>
               {items.map((item) => (
                 <motion.div
                   key={item.id}
                   layout
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.2 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
                 >
                   <ItemCard item={item} />
                 </motion.div>
@@ -230,8 +230,8 @@ export function WatchlistPage() {
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-border/50 pt-4">
-          <p className="text-xs text-muted-foreground">
+        <div className="flex items-center justify-between border-t border-white/[0.08] pt-4">
+          <p className="text-xs font-mono text-neutral-500">
             Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)} of {total}
           </p>
           <div className="flex items-center gap-2">
@@ -240,20 +240,20 @@ export function WatchlistPage() {
               size="sm"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="gap-1 h-8 text-xs"
+              className="gap-1 h-8 text-xs bg-[#080808] border-white/10 text-neutral-300 hover:bg-neutral-800 hover:text-white rounded-lg"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               Previous
             </Button>
-            <span className="text-xs font-medium px-2">
-              Page {page} of {totalPages}
+            <span className="text-xs font-mono text-neutral-400 px-2">
+              {page} / {totalPages}
             </span>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page >= totalPages}
-              className="gap-1 h-8 text-xs"
+              className="gap-1 h-8 text-xs bg-[#080808] border-white/10 text-neutral-300 hover:bg-neutral-800 hover:text-white rounded-lg"
             >
               Next
               <ChevronRight className="w-3.5 h-3.5" />
